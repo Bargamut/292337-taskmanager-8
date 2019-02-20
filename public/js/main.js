@@ -1,8 +1,6 @@
 'use strict';
 
 window.addEventListener(`DOMContentLoaded`, function () {
-  const $mainFilter = document.querySelector(`.main__filter`);
-  const $boardTasks = document.querySelector(`.board__tasks`);
   const taskFilters = {
     all: {
       caption: `All`, count: 42, checked: true
@@ -50,43 +48,66 @@ window.addEventListener(`DOMContentLoaded`, function () {
     }
   ];
 
-  for (let key in taskFilters) {
+  renderTaskBoard(document.querySelector(`.board__tasks`), cards);
+  renderFiltersBar(document.querySelector(`.main__filter`), taskFilters);
+});
+
+/**
+ * @description Отрисовка фильтров с навешиванием обработчика кликов по ним
+ * @author Paul "Bargamut" Petrov
+ * @date 2019-02-21
+ * @param {Node} $filtersBar DOM-элемент блока фильтров
+ * @param {Object} [taskFilters={}] Объект описания свойств фильтров
+ */
+function renderFiltersBar($filtersBar, taskFilters = {}) {
+  const $docFragmentFilters = document.createDocumentFragment();
+
+  // Собираем фильтры
+  for (const key in taskFilters) {
     if (!taskFilters.hasOwnProperty(key)) {
       continue;
     }
 
-    $mainFilter.appendChild(
-        renderFilter(key, taskFilters[key]).content.cloneNode(true)
+    $docFragmentFilters.appendChild(
+        makeFilterTemplate(key, taskFilters[key]).content.cloneNode(true)
     );
   }
 
+  $filtersBar.innerHTML = ``;
+  $filtersBar.appendChild($docFragmentFilters);
+  $filtersBar.addEventListener(`click`, onFilterClick);
+}
+
+/**
+ * @description Отрисовка доски задач
+ * @author Paul "Bargamut" Petrov
+ * @date 2019-02-21
+ * @param {Node} $taskBoard DOM-элемент блока задач
+ * @param {Array} [cards=[]] Массив объектов описания карточек
+ */
+function renderTaskBoard($taskBoard, cards = []) {
+  const $docFragmentCards = document.createDocumentFragment();
+
+  // Собираем карточки
   cards.forEach(function (card, index) {
-    $boardTasks.appendChild(
-        renderCard(index, card).content.cloneNode(true)
+    $docFragmentCards.appendChild(
+        makeCardTemplate(index, card).content.cloneNode(true)
     );
   });
-});
 
-document.querySelector(`.filter`).addEventListener(`click`, function (ev) {
-  const $target = ev.target;
-  const $boardTasks = document.querySelector(`.board__tasks`);
-  const numTasks = Math.floor(Math.random() * (20 - 1)) + 1;
-  const tempCard = {
-    text: `Random card`
-  };
+  $taskBoard.innerHTML = ``;
+  $taskBoard.appendChild($docFragmentCards);
+}
 
-  if ($target.classList.contains(`filter__label`)) {
-    $boardTasks.innerHTML = ``;
-
-    for (let i = 0; ++i <= numTasks;) {
-      $boardTasks.appendChild(
-          renderCard(i, tempCard).content.cloneNode(true)
-      );
-    }
-  }
-});
-
-function renderFilter(id, objFilter) {
+/**
+ * @description Создание шаблона фильтра
+ * @author Paul "Bargamut" Petrov
+ * @date 2019-02-21
+ * @param {Number} id ID фильтра
+ * @param {Object} objFilter Объект описания фильтра
+ * @return {Node} DOM-элемент <template> фильтра
+ */
+function makeFilterTemplate(id, objFilter) {
   const $tplFilter = document.createElement(`template`);
 
   $tplFilter.innerHTML =
@@ -104,7 +125,15 @@ function renderFilter(id, objFilter) {
   return $tplFilter;
 }
 
-function renderCard(index, card) {
+/**
+ * @description Создание шаблона карточки задачи
+ * @author Paul "Bargamut" Petrov
+ * @date 2019-02-21
+ * @param {Number} index Индексный номер задачи
+ * @param {Object} card Объект описания карточки задачи
+ * @return {Node} DOM-элемент <template> фильтра
+ */
+function makeCardTemplate(index, card) {
   const defaultCard = {
     text: `Test card template`,
     color: `black`,
@@ -116,6 +145,12 @@ function renderCard(index, card) {
     repeatDays: [],
     hashtags: []
   };
+  const days = [
+    `mo`, `tu`, `we`, `th`, `fr`, `sa`, `su`
+  ];
+  const colors = [
+    `black`, `yellow`, `blue`, `green`, `pink`
+  ];
   const $tplCard = document.createElement(`template`);
 
   card = Object.assign({}, defaultCard, card);
@@ -179,77 +214,7 @@ function renderCard(index, card) {
                 </button>
 
                 <fieldset class="card__repeat-days" ${card.isRepeatEnabled ? `` : `disabled`}>
-                  <div class="card__repeat-days-inner">
-                    <input
-                      class="visually-hidden card__repeat-day-input"
-                      type="checkbox"
-                      id="repeat-mo-${index}"
-                      name="repeat"
-                      value="mo"
-                      ${(card.repeatDays.indexOf(`mo`) > -1) ? `checked` : ``}
-                    />
-                    <label class="card__repeat-day" for="repeat-mo-${index}">mo</label>
-
-                    <input
-                      class="visually-hidden card__repeat-day-input"
-                      type="checkbox"
-                      id="repeat-tu-${index}"
-                      name="repeat"
-                      value="tu"
-                      ${(card.repeatDays.indexOf(`tu`) > -1) ? `checked` : ``}
-                    />
-                    <label class="card__repeat-day" for="repeat-tu-${index}">tu</label>
-
-                    <input
-                      class="visually-hidden card__repeat-day-input"
-                      type="checkbox"
-                      id="repeat-we-${index}"
-                      name="repeat"
-                      value="we"
-                      ${(card.repeatDays.indexOf(`we`) > -1) ? `checked` : ``}
-                    />
-                    <label class="card__repeat-day" for="repeat-we-${index}">we</label>
-
-                    <input
-                      class="visually-hidden card__repeat-day-input"
-                      type="checkbox"
-                      id="repeat-th-1"
-                      name="repeat"
-                      value="th"
-                      ${(card.repeatDays.indexOf(`th`) > -1) ? `checked` : ``}
-                    />
-                    <label class="card__repeat-day" for="repeat-th-${index}">th</label>
-
-                    <input
-                      class="visually-hidden card__repeat-day-input"
-                      type="checkbox"
-                      id="repeat-fr-${index}"
-                      name="repeat"
-                      value="fr"
-                      ${(card.repeatDays.indexOf(`fr`) > -1) ? `checked` : ``}
-                    />
-                    <label class="card__repeat-day" for="repeat-fr-${index}">fr</label>
-
-                    <input
-                      class="visually-hidden card__repeat-day-input"
-                      type="checkbox"
-                      name="repeat"
-                      value="sa"
-                      id="repeat-sa-${index}"
-                      ${(card.repeatDays.indexOf(`sa`) > -1) ? `checked` : ``}
-                    />
-                    <label class="card__repeat-day" for="repeat-sa-${index}">sa</label>
-
-                    <input
-                      class="visually-hidden card__repeat-day-input"
-                      type="checkbox"
-                      id="repeat-su-${index}"
-                      name="repeat"
-                      value="su"
-                      ${(card.repeatDays.indexOf(`su`) > -1) ? `checked` : ``}
-                    />
-                    <label class="card__repeat-day" for="repeat-su-${index}">su</label>
-                  </div>
+                  <div class="card__repeat-days-inner"></div>
                 </fieldset>
               </div>
 
@@ -283,63 +248,7 @@ function renderCard(index, card) {
             <div class="card__colors-inner">
               <h3 class="card__colors-title">Color</h3>
 
-              <div class="card__colors-wrap">
-                <input
-                  type="radio"
-                  id="color-black-${index}"
-                  class="card__color-input card__color-input--black visually-hidden"
-                  name="color"
-                  value="black"
-                  ${(card.color === `black`) ? `checked` : ``}
-                />
-                <label for="color-black-${index}" class="card__color card__color--black">
-                  black
-                </label>
-                <input
-                  type="radio"
-                  id="color-yellow-${index}"
-                  class="card__color-input card__color-input--yellow visually-hidden"
-                  name="color"
-                  value="yellow"
-                  ${(card.color === `yellow`) ? `checked` : ``}
-                />
-                <label for="color-yellow-${index}" class="card__color card__color--yellow">
-                  yellow
-                </label>
-                <input
-                  type="radio"
-                  id="color-blue-${index}"
-                  class="card__color-input card__color-input--blue visually-hidden"
-                  name="color"
-                  value="blue"
-                  ${(card.color === `blue`) ? `checked` : ``}
-                />
-                <label for="color-blue-${index}" class="card__color card__color--blue">
-                  blue
-                </label>
-                <input
-                  type="radio"
-                  id="color-green-${index}"
-                  class="card__color-input card__color-input--green visually-hidden"
-                  name="color"
-                  value="green"
-                  ${(card.color === `green`) ? `checked` : ``}
-                />
-                <label for="color-green-${index}" class="card__color card__color--green">
-                  green
-                </label>
-                <input
-                  type="radio"
-                  id="color-pink-${index}"
-                  class="card__color-input card__color-input--pink visually-hidden"
-                  name="color"
-                  value="pink"
-                  ${(card.color === `pink`) ? `checked` : ``}
-                />
-                <label for="color-pink-${index}" class="card__color card__color--pink">
-                  pink
-                </label>
-              </div>
+              <div class="card__colors-wrap"></div>
             </div>
           </div>
 
@@ -351,5 +260,96 @@ function renderCard(index, card) {
       </form>
     </article>`;
 
+
+  $tplCard.content.querySelector(`.card__repeat-days-inner`).appendChild(
+      makeRepeatDaysTemplate(days, index, card).content.cloneNode(true)
+  );
+
+  $tplCard.content.querySelector(`.card__colors-wrap`).appendChild(
+      makeColorsTemplate(colors, index, card).content.cloneNode(true)
+  );
+
   return $tplCard;
+}
+
+/**
+ * @description Создание набора элементов дней повтора
+ * @author Paul "Bargamut" Petrov
+ * @date 2019-02-21
+ * @param {Array} days Массив дней
+ * @param {Number} index Индексный номер карточки
+ * @param {Object} card Объект описания карточки
+ * @return {Node} DOM-элемент <template> набора элементов
+ */
+function makeRepeatDaysTemplate(days, index, card) {
+  const $tplRepeatDays = document.createElement(`template`);
+
+  for (const day of days) {
+    $tplRepeatDays.innerHTML +=
+      `<input
+        class="visually-hidden card__repeat-day-input"
+        type="checkbox"
+        id="repeat-${day}-${index}"
+        name="repeat"
+        value="${day}"
+        ${(card.repeatDays.indexOf(day) > -1) ? `checked` : ``}
+      />
+      <label class="card__repeat-day" for="repeat-${day}-${index}">${day}</label>`;
+  }
+
+  return $tplRepeatDays;
+}
+
+/**
+ * @description Создание набора элементов цветов карточки
+ * @author Paul "Bargamut" Petrov
+ * @date 2019-02-21
+ * @param {Array} colors Массив цветов
+ * @param {Number} index Индексный номер карточки
+ * @param {Object} card Объект описания карточки
+ * @return {Node} DOM-элемент <template> набора цветов
+ */
+function makeColorsTemplate(colors, index, card) {
+  const $tplColors = document.createElement(`template`);
+
+  for (const color of colors) {
+    $tplColors.innerHTML +=
+      `<input
+        type="radio"
+        id="color-${color}-${index}"
+        class="card__color-input card__color-input--${color} visually-hidden"
+        name="color"
+        value="${color}"
+        ${(card.color === color) ? `checked` : ``}
+      />
+      <label for="color-${color}-${index}" class="card__color card__color--${color}">
+        ${color}
+      </label>`;
+  }
+
+  return $tplColors;
+}
+
+/**
+ * @description Обработчик клика по фильтру
+ * @author Paul "Bargamut" Petrov
+ * @date 2019-02-21
+ * @param {Event} evt Объект события
+ */
+function onFilterClick(evt) {
+  const $target = evt.target;
+  const randomNumTasks = Math.floor(Math.random() * (20 - 1)) + 1;
+  const randomCards = [];
+
+  if (!$target.classList.contains(`filter__label`)) {
+    return;
+  }
+
+  for (let i = 0; ++i <= randomNumTasks;) {
+    randomCards.push({
+      text: `Random card ${i}`
+    });
+  }
+
+  renderTaskBoard(document.querySelector(`.board__tasks`), randomCards);
 }
