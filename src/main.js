@@ -1,5 +1,3 @@
-'use strict';
-
 window.addEventListener(`DOMContentLoaded`, function () {
   const taskFilters = {
     all: {
