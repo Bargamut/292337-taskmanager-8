@@ -3,25 +3,25 @@
  * @author Paul "Bargamut" Petrov
  * @date 2019-02-21
  * @param {Number} id ID фильтра
- * @param {Object} objFilter Объект описания фильтра
+ * @param {Object} filter Объект описания фильтра
  * @return {Node} DOM-элемент <template> фильтра
  */
-const makeFilterTemplate = function (id, objFilter) {
-  const elemTplFilter = document.createElement(`template`);
+const makeFilterTemplate = function (id, filter) {
+  const nodeFilterTemplate = document.createElement(`template`);
 
-  elemTplFilter.innerHTML =
+  nodeFilterTemplate.innerHTML =
     `<input
       type="radio"
       id="${id}"
       class="filter__input visually-hidden"
       name="filter"
-      ${objFilter.checked ? `checked` : ``}
+      ${filter.checked ? `checked` : ``}
     />
     <label for="${id}" class="filter__label">
-      ${objFilter.caption} <span class="${id}-count">${objFilter.count}</span>
+      ${filter.caption} <span class="${id}-count">${filter.count}</span>
     </label>`;
 
-  return elemTplFilter;
+  return nodeFilterTemplate;
 };
 
 export default makeFilterTemplate;
