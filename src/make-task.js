@@ -1,33 +1,28 @@
-const days = [
-  `mo`, `tu`, `we`, `th`, `fr`, `sa`, `su`
-];
-const colors = [
-  `black`, `yellow`, `blue`, `green`, `pink`
-];
-
 /**
  * @description Создание шаблона карточки задачи
  * @author Paul "Bargamut" Petrov
  * @date 2019-02-21
  * @param {Number} index Индексный номер задачи
  * @param {Object} card Объект описания карточки задачи
+ * @param {Array} cardColors Массив имён цветовдля карточки задачи
  * @return {Node} DOM-элемент <template> фильтра
  */
-const makeCardTemplate = function (index, card) {
-  const defaultCard = {
-    text: `Test card template`,
-    color: `black`,
-    img: ``,
-    isDeadlineEnabled: false,
-    deadlineDate: ``,
-    deadlineTime: ``,
-    isRepeatEnabled: false,
-    repeatDays: [],
-    hashtags: []
-  };
+const makeCardTemplate = function (index, card, cardColors) {
   const nodeCardTemplate = document.createElement(`template`);
+  const dueDate = new Date(card.dueDate);
+  const isRepeatingEnabled = Object.values(card.repeatingDays).some((day) => {
+    return day;
+  });
+  const deadline = {
+    isEnabled: typeof card.dueDate !== `undefined`
+  };
 
-  card = Object.assign({}, defaultCard, card);
+  deadline.date = deadline.isEnabled
+    ? dueDate.toLocaleString(`en-GB`, {day: `2-digit`, month: `long`})
+    : ``;
+  deadline.time = deadline.isEnabled
+    ? dueDate.toLocaleString(`en-US`, {hour: `2-digit`, minute: `2-digit`, hour12: true})
+    : ``;
 
   nodeCardTemplate.innerHTML =
     `<article class="card card--${card.color}">
@@ -51,7 +46,7 @@ const makeCardTemplate = function (index, card) {
                 class="card__text"
                 placeholder="Start typing your text here..."
                 name="text"
-              >${card.text}</textarea>
+              >${card.title}</textarea>
             </label>
           </div>
 
@@ -59,35 +54,35 @@ const makeCardTemplate = function (index, card) {
             <div class="card__details">
               <div class="card__dates">
                 <button class="card__date-deadline-toggle" type="button">
-                  date: <span class="card__date-status">${card.isDeadlineEnabled ? `yes` : `no`}</span>
+                  date: <span class="card__date-status">${deadline.isEnabled ? `yes` : `no`}</span>
                 </button>
 
-                <fieldset class="card__date-deadline" ${card.isDeadlineEnabled ? `` : `disabled`}>
+                <fieldset class="card__date-deadline" ${deadline.isEnabled ? `` : `disabled`}>
                   <label class="card__input-deadline-wrap">
                     <input
                       class="card__date"
                       type="text"
                       placeholder="23 September"
                       name="date"
-                      value="${card.deadlineDate}"
+                      value="${deadline.date}"
                     />
                   </label>
                   <label class="card__input-deadline-wrap">
                     <input
                       class="card__time"
                       type="text"
-                      placeholder="11:15 PM"
+                      placeholder="${deadline.time}"
                       name="time"
-                      value="${card.deadlineTime}"
+                      value=""
                     />
                   </label>
                 </fieldset>
 
                 <button class="card__repeat-toggle" type="button">
-                  repeat:<span class="card__repeat-status">${card.isRepeatEnabled ? `yes` : `no`}</span>
+                  repeat:<span class="card__repeat-status">${isRepeatingEnabled ? `yes` : `no`}</span>
                 </button>
 
-                <fieldset class="card__repeat-days" ${card.isRepeatEnabled ? `` : `disabled`}>
+                <fieldset class="card__repeat-days" ${isRepeatingEnabled ? `` : `disabled`}>
                   <div class="card__repeat-days-inner"></div>
                 </fieldset>
               </div>
@@ -113,7 +108,7 @@ const makeCardTemplate = function (index, card) {
                 name="img"
               />
               <img
-                src="${card.img}"
+                src="${card.picture}"
                 alt="task picture"
                 class="card__img"
               />
@@ -136,11 +131,15 @@ const makeCardTemplate = function (index, card) {
 
 
   nodeCardTemplate.content.querySelector(`.card__repeat-days-inner`).appendChild(
-      makeRepeatDaysTemplate(index, card).content.cloneNode(true)
+      makeRepeatDaysTemplate(index, card.repeatingDays).content.cloneNode(true)
   );
 
   nodeCardTemplate.content.querySelector(`.card__colors-wrap`).appendChild(
-      makeColorsTemplate(index, card).content.cloneNode(true)
+      makeColorsTemplate(index, card.color, cardColors).content.cloneNode(true)
+  );
+
+  nodeCardTemplate.content.querySelector(`.card__hashtag-list`).appendChild(
+      makeHashTagTemplate(card.tags).content.cloneNode(true)
   );
 
   return nodeCardTemplate;
@@ -151,13 +150,13 @@ const makeCardTemplate = function (index, card) {
  * @author Paul "Bargamut" Petrov
  * @date 2019-02-21
  * @param {Number} index Индексный номер карточки
- * @param {Object} card Объект описания карточки
+ * @param {Object} repeatingDays Объект описания дней повторения
  * @return {Node} DOM-элемент <template> набора элементов
  */
-const makeRepeatDaysTemplate = function (index, card) {
+const makeRepeatDaysTemplate = function (index, repeatingDays) {
   const nodeRepeatDaysTemplate = document.createElement(`template`);
 
-  for (const day of days) {
+  Object.keys(repeatingDays).forEach((day) => {
     nodeRepeatDaysTemplate.innerHTML +=
       `<input
         class="visually-hidden card__repeat-day-input"
@@ -165,10 +164,10 @@ const makeRepeatDaysTemplate = function (index, card) {
         id="repeat-${day}-${index}"
         name="repeat"
         value="${day}"
-        ${(card.repeatDays.indexOf(day) > -1) ? `checked` : ``}
-      />
-      <label class="card__repeat-day" for="repeat-${day}-${index}">${day}</label>`;
-  }
+        ${repeatingDays[day] ? `checked` : ``}
+      />\n
+      <label class="card__repeat-day" for="repeat-${day}-${index}">${day}</label>\n`;
+  });
 
   return nodeRepeatDaysTemplate;
 };
@@ -178,13 +177,14 @@ const makeRepeatDaysTemplate = function (index, card) {
  * @author Paul "Bargamut" Petrov
  * @date 2019-02-21
  * @param {Number} index Индексный номер карточки
- * @param {Object} card Объект описания карточки
+ * @param {Array} [cardColors=[]] Перечень доступных цветов
+ * @param {String} cardColor Цвет карточки
  * @return {Node} DOM-элемент <template> набора цветов
  */
-const makeColorsTemplate = function (index, card) {
+const makeColorsTemplate = function (index, cardColors = [], cardColor) {
   const nodeColorsTemplate = document.createElement(`template`);
 
-  for (const color of colors) {
+  for (const color of cardColors) {
     nodeColorsTemplate.innerHTML +=
       `<input
         type="radio"
@@ -192,7 +192,7 @@ const makeColorsTemplate = function (index, card) {
         class="card__color-input card__color-input--${color} visually-hidden"
         name="color"
         value="${color}"
-        ${(card.color === color) ? `checked` : ``}
+        ${(cardColor === color) ? `checked` : ``}
       />
       <label for="color-${color}-${index}" class="card__color card__color--${color}">
         ${color}
@@ -200,6 +200,35 @@ const makeColorsTemplate = function (index, card) {
   }
 
   return nodeColorsTemplate;
+};
+
+/**
+ * @description Создание набора тегов карточки
+ * @param {Set} tags - множество тегов
+ * @return {Node} DOM-элемент <template> набора тегов
+ */
+const makeHashTagTemplate = function (tags) {
+  const nodeHashTagTemplate = document.createElement(`template`);
+
+  tags.forEach((tag) => {
+    nodeHashTagTemplate.innerHTML +=
+      `<span class="card__hashtag-inner">
+        <input
+          type="hidden"
+          name="hashtag"
+          value="${tag}"
+          class="card__hashtag-hidden-input"
+        />
+        <button type="button" class="card__hashtag-name">
+          #${tag}
+        </button>
+        <button type="button" class="card__hashtag-delete">
+          delete
+        </button>
+      </span>`;
+  });
+
+  return nodeHashTagTemplate;
 };
 
 export default makeCardTemplate;
