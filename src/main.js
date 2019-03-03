@@ -1,57 +1,50 @@
 import makeFilterTemplate from './make-filter';
 import makeCardTemplate from './make-task';
 
+const WEEK_MILLISECONDS = 604800000;
+const arrayTitles = [
+  `Изучить теорию`,
+  `Сделать домашку`,
+  `Пройти интенсив на соточку`
+];
+const arrayColors = [`black`, `yellow`, `blue`, `green`, `pink`];
+const arrayTags = [`homework`, `theory`, `practice`, `intensive`, `keks`, `bargamut`, `awesome`, `tibet`];
+
+const filters = {
+  all: {
+    caption: `All`, count: 42, checked: true
+  },
+  overdue: {
+    caption: `Overdue`, count: 11
+  },
+  today: {
+    caption: `Today`, count: 76
+  },
+  favorites: {
+    caption: `Favorites`, count: 47
+  },
+  repeating: {
+    caption: `Repeating`, count: 152
+  },
+  tags: {
+    caption: `Tags`, count: 279
+  },
+  archive: {
+    caption: `Archive`, count: 100030
+  }
+};
+
+const cards = [];
+
 window.addEventListener(`DOMContentLoaded`, function () {
   const nodeFiltersBar = document.querySelector(`.main__filter`);
-  const taskFilters = {
-    all: {
-      caption: `All`, count: 42, checked: true
-    },
-    overdue: {
-      caption: `Overdue`, count: 11
-    },
-    today: {
-      caption: `Today`, count: 76
-    },
-    favorites: {
-      caption: `Favorites`, count: 47
-    },
-    repeating: {
-      caption: `Repeating`, count: 152
-    },
-    tags: {
-      caption: `Tags`, count: 279
-    },
-    archive: {
-      caption: `Archive`, count: 100030
-    }
-  };
-  const cards = [
-    {
-      text: `Test card template 1`
-    },
-    {
-      text: `Test card template 2`
-    },
-    {
-      text: `Test card template 3`
-    },
-    {
-      text: `Test card template 4`
-    },
-    {
-      text: `Test card template 5`
-    },
-    {
-      text: `Test card template 6`
-    },
-    {
-      text: `Test card template 7`
-    }
-  ];
+
+  while (cards.length < 7) {
+    cards.push(generateCardData());
+  }
 
   renderTaskBoard(document.querySelector(`.board__tasks`), cards);
-  renderFiltersBar(nodeFiltersBar, taskFilters);
+  renderFiltersBar(nodeFiltersBar, filters);
 });
 
 /**
@@ -59,22 +52,21 @@ window.addEventListener(`DOMContentLoaded`, function () {
  * @author Paul "Bargamut" Petrov
  * @date 2019-02-21
  * @param {Node} nodeTaskBoard DOM-элемент блока задач
- * @param {Array} [cards=[]] Массив объектов описания карточек
+ * @param {Array} [taskCards=[]] Массив объектов описания карточек
  */
-function renderTaskBoard(nodeTaskBoard, cards = []) {
+function renderTaskBoard(nodeTaskBoard, taskCards = []) {
   const docFragmentCards = document.createDocumentFragment();
 
   // Собираем карточки
-  cards.forEach(function (card, index) {
+  taskCards.forEach(function (card, index) {
     docFragmentCards.appendChild(
-        makeCardTemplate(index, card).content.cloneNode(true)
+        makeCardTemplate(index, card, arrayColors).content.cloneNode(true)
     );
   });
 
   nodeTaskBoard.innerHTML = ``;
   nodeTaskBoard.appendChild(docFragmentCards);
 }
-
 
 /**
  * @description Отрисовка фильтров с навешиванием обработчика кликов по ним
@@ -117,11 +109,36 @@ function onFilterClick(evt) {
     return;
   }
 
-  for (let i = 0; ++i <= randomNumTasks;) {
-    randomCards.push({
-      text: `Random card ${i}`
-    });
+  while (randomCards.length <= randomNumTasks) {
+    randomCards.push(generateCardData());
   }
 
   renderTaskBoard(document.querySelector(`.board__tasks`), randomCards);
 }
+
+const generateCardData = () => (
+  {
+    title: arrayTitles[getRandomInt(3)],
+    dueDate: Date.now() + getRandomInt(WEEK_MILLISECONDS, -WEEK_MILLISECONDS),
+    picture: `https://picsum.photos/100/100?r=${Math.random()}`,
+    color: arrayColors[getRandomInt(arrayColors.length)],
+    repeatingDays: {
+      mo: Math.random() > 0.5,
+      tu: Math.random() > 0.5,
+      we: Math.random() > 0.5,
+      th: Math.random() > 0.5,
+      fr: Math.random() > 0.5,
+      sa: Math.random() > 0.5,
+      su: Math.random() > 0.5
+    },
+    isFavorite: Math.random() > 0.5,
+    isDone: Math.random() > 0.5,
+    tags: new Set([
+      arrayTags[getRandomInt(arrayTags.length)],
+      arrayTags[getRandomInt(arrayTags.length)],
+      arrayTags[getRandomInt(arrayTags.length)]
+    ])
+  }
+);
+
+const getRandomInt = (max, min = 0) => Math.floor(Math.random() * (max - min)) + min;
