@@ -1,5 +1,5 @@
 import makeFilterTemplate from './make-filter';
-import makeCardTemplate from './make-task';
+import Task from './make-task';
 import generateCardData, {arrayColors} from './make-data';
 
 const filters = {
@@ -52,7 +52,7 @@ function renderTaskBoard(nodeTaskBoard, taskCards = []) {
   // Собираем карточки
   taskCards.forEach(function (card, index) {
     docFragmentCards.appendChild(
-        makeCardTemplate(index, card, arrayColors).content.cloneNode(true)
+        new Task(index, card, arrayColors).render()
     );
   });
 
