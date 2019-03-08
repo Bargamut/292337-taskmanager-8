@@ -1,5 +1,6 @@
 import makeFilterTemplate from './make-filter';
-import Task from './make-task';
+import Task from './task';
+import TaskEdit from './task-edit';
 import generateCardData, {arrayColors} from './make-data';
 
 const filters = {
@@ -42,7 +43,6 @@ window.addEventListener(`DOMContentLoaded`, function () {
 /**
  * @description Отрисовка доски задач
  * @author Paul "Bargamut" Petrov
- * @date 2019-02-21
  * @param {Node} nodeTaskBoard DOM-элемент блока задач
  * @param {Array} [taskCards=[]] Массив объектов описания карточек
  */
@@ -51,8 +51,23 @@ function renderTaskBoard(nodeTaskBoard, taskCards = []) {
 
   // Собираем карточки
   taskCards.forEach(function (card, index) {
+    const componentTask = new Task(index, card);
+    const componentTaskEdit = new TaskEdit(index, card, arrayColors);
+
+    componentTask.onEdit = () => {
+      componentTaskEdit.render();
+      nodeTaskBoard.replaceChild(componentTaskEdit.element, componentTask.element);
+      componentTask.unrender();
+    };
+
+    componentTaskEdit.onSubmit = () => {
+      componentTask.render();
+      nodeTaskBoard.replaceChild(componentTask.element, componentTaskEdit.element);
+      componentTaskEdit.unrender();
+    };
+
     docFragmentCards.appendChild(
-        new Task(index, card, arrayColors).render()
+        componentTask.render()
     );
   });
 
@@ -62,8 +77,6 @@ function renderTaskBoard(nodeTaskBoard, taskCards = []) {
 
 /**
  * @description Отрисовка фильтров с навешиванием обработчика кликов по ним
- * @author Paul "Bargamut" Petrov
- * @date 2019-02-21
  * @param {Node} nodeFiltersBar DOM-элемент блока фильтров
  * @param {Object} [taskFilters={}] Объект описания свойств фильтров
  */

@@ -1,5 +1,15 @@
-class Task {
-  constructor(index, card, arrayColors = []) {
+/**
+ * @description Класс компонента Карточки задачи
+ * @class Task
+ */
+export default class Task {
+  /**
+   * @description Конструктор экземпляра класса Task
+   * @param {Number} index Индексный номер карточки
+   * @param {Object} card Объект данных карточки
+   * @memberof Task
+   */
+  constructor(index, card) {
     this._index = index;
     this._title = card.title;
     this._tags = card.tags;
@@ -7,39 +17,53 @@ class Task {
     this._dueDate = card.dueDate;
     this._repeatingDays = card.repeatingDays;
     this._color = card.color;
-    this._arrayColors = arrayColors;
+
     this._element = null;
     this._nodeBtnEdit = null;
     this._nodeBtnSave = null;
+
+    this._onEdit = null;
   }
 
-  render() {
-    this._element = this.template.content.cloneNode(true);
+  /**
+   * @description Геттер срока выполнения
+   * @readonly
+   * @memberof Task
+   * @return {Object} Объект данных срока выполнения
+   */
+  get _deadline() {
+    const deadline = {
+      isEnabled: typeof this._dueDate !== `undefined`
+    };
 
-    this._nodeBtnEdit = this._element.querySelector(`.card__btn--edit`);
-    this._nodeBtnSave = this._element.querySelector(`.card__save`);
+    if (deadline.isEnabled) {
+      this._dueDate = new Date(this._dueDate);
+    }
 
-    this._nodeBtnEdit.addEventListener(`click`, this._onClickEdit);
-    this._nodeBtnSave.addEventListener(`submit`, this._onClickSave);
+    deadline.date = deadline.isEnabled
+      ? this._dueDate.toLocaleString(`en-GB`, {day: `2-digit`, month: `long`})
+      : ``;
+    deadline.time = deadline.isEnabled
+      ? this._dueDate.toLocaleString(`en-US`, {hour: `2-digit`, minute: `2-digit`, hour12: true})
+      : ``;
 
+    return deadline;
+  }
+
+  /**
+   * @description Геттер DOM-элемента карточки задачи
+   * @readonly
+   * @memberof Task
+   * @return {Node} DOM-элемент карточки задачи
+   */
+  get element() {
     return this._element;
   }
 
-  unrender() {
-    this._nodeBtnEdit.removeEventListener(`click`, this._onClickEdit);
-    this._nodeBtnSave.removeEventListener(`submit`, this._onClickSave);
-
-    this._nodeBtnEdit = null;
-    this._nodeBtnSave = null;
-    this._element = null;
-  }
-
-  // TODO: Сделать обработчики событий
-  _onClickEdit() {}
-  _onClickSave() {}
-
   /**
    * @description Возвращаем шаблон карточки задачи
+   * @readonly
+   * @memberof Task
    * @return {Node} DOM-элемент <template> фильтра
    */
   get template() {
@@ -47,7 +71,7 @@ class Task {
     const isRepeatingEnabled = Object.values(this._repeatingDays).some((day) => {
       return day;
     });
-    const deadline = this.deadline;
+    const deadline = this._deadline;
 
     nodeCardTemplate.innerHTML =
       `<article class="card card--${this._color}">
@@ -78,10 +102,6 @@ class Task {
             <div class="card__settings">
               <div class="card__details">
                 <div class="card__dates">
-                  <button class="card__date-deadline-toggle" type="button">
-                    date: <span class="card__date-status">${deadline.isEnabled ? `yes` : `no`}</span>
-                  </button>
-
                   <fieldset class="card__date-deadline" ${deadline.isEnabled ? `` : `disabled`}>
                     <label class="card__input-deadline-wrap">
                       <input
@@ -96,65 +116,34 @@ class Task {
                       <input
                         class="card__time"
                         type="text"
-                        placeholder="${deadline.time}"
+                        placeholder="5:23 PM"
                         name="time"
-                        value=""
+                        value="${deadline.time}"
                       />
                     </label>
                   </fieldset>
 
-                  <button class="card__repeat-toggle" type="button">
-                    repeat:<span class="card__repeat-status">${isRepeatingEnabled ? `yes` : `no`}</span>
-                  </button>
-
                   <fieldset class="card__repeat-days" ${isRepeatingEnabled ? `` : `disabled`}>
                     <div class="card__repeat-days-inner">
-                      ${this.cardRepeatDaysTemplate}
+                      ${this._getCardRepeatDaysTemplate()}
                     </div>
                   </fieldset>
                 </div>
 
                 <div class="card__hashtag">
                   <div class="card__hashtag-list">
-                    ${this.cardHashTagsTemplate}
+                    ${this._getCardHashTagsTemplate()}
                   </div>
-
-                  <label>
-                    <input
-                      type="text"
-                      class="card__hashtag-input"
-                      name="hashtag-input"
-                      placeholder="Type new hashtag here"
-                    />
-                  </label>
                 </div>
               </div>
 
-              <label class="card__img-wrap card__img-wrap--empty">
-                <input
-                  type="file"
-                  class="card__img-input visually-hidden"
-                  name="img"
-                />
+              <label class="card__img-wrap ${!this._picture.trim() ? `card__img-wrap--empty` : ``}">
                 <img
                   src="${this._picture}"
                   alt="task picture"
                   class="card__img"
                 />
               </label>
-
-              <div class="card__colors-inner">
-                <h3 class="card__colors-title">Color</h3>
-
-                <div class="card__colors-wrap">
-                  ${this.cardColorsTemplate}
-                </div>
-              </div>
-            </div>
-
-            <div class="card__status-btns">
-              <button class="card__save" type="submit">save</button>
-              <button class="card__delete" type="button">delete</button>
             </div>
           </div>
         </form>
@@ -164,10 +153,48 @@ class Task {
   }
 
   /**
+   * @description Сеттер обработчика клика по кнопке Edit
+   * @param {Function} callback Функция-обработчик
+   * @memberof Task
+   */
+  set onEdit(callback) {
+    this._onEdit = callback;
+  }
+
+  /**
+   * @description Отрисовка карточки задачи с установкой
+   * обработчиков событий
+   * @return {Node} DOM-элемент карточки задачи
+   * @memberof Task
+   */
+  render() {
+    this._element = this.template.content.cloneNode(true).firstChild;
+    this._nodeBtnEdit = this._element.querySelector(`.card__btn--edit`);
+
+    this._nodeBtnEdit.addEventListener(`click`, this._onClickEdit.bind(this));
+
+    return this._element;
+  }
+
+  /**
+   * @description Отвязка ссылок на DOM-элемент карточки
+   * задачи с удалением обработчиков событий
+   * @memberof Task
+   */
+  unrender() {
+    this._nodeBtnEdit.removeEventListener(`click`, this._onClickEdit);
+
+    this._nodeBtnEdit = null;
+    this._element = null;
+  }
+
+  /**
    * @description Геттер шаблона набора элементов дней повтора
+   * @readonly
+   * @memberof Task
    * @return {String} Шаблон набора элементов дней повтора
    */
-  get cardRepeatDaysTemplate() {
+  _getCardRepeatDaysTemplate() {
     let template = ``;
 
     Object.keys(this._repeatingDays).forEach((day) => {
@@ -187,35 +214,12 @@ class Task {
   }
 
   /**
-   * @description Геттер шаблона набора элементов цветов карточки
-   * @return {String} Шаблон набора цветов
-   */
-  get cardColorsTemplate() {
-    let template = ``;
-
-    for (const color of this._arrayColors) {
-      template +=
-        `<input
-          type="radio"
-          id="color-${color}-${this._index}"
-          class="card__color-input card__color-input--${color} visually-hidden"
-          name="color"
-          value="${color}"
-          ${(this._cardColor === color) ? `checked` : ``}
-        />
-        <label for="color-${color}-${this._index}" class="card__color card__color--${color}">
-          ${color}
-        </label>`;
-    }
-
-    return template;
-  }
-
-  /**
    * @description Геттер шаблона набора тегов карточки
+   * @readonly
+   * @memberof Task
    * @return {String} Шаблон набора тегов
    */
-  get cardHashTagsTemplate() {
+  _getCardHashTagsTemplate() {
     let template = ``;
 
     this._tags.forEach((tag) => {
@@ -239,24 +243,13 @@ class Task {
     return template;
   }
 
-  get deadline() {
-    const deadline = {
-      isEnabled: typeof this._dueDate !== `undefined`
-    };
-
-    if (deadline.isEnabled) {
-      this._dueDate = new Date(this._dueDate);
+  /**
+   * @description Вызвать обработчик нажатия кнопки Edit, если он функция
+   * @memberof Task
+   */
+  _onClickEdit() {
+    if (this._onEdit instanceof Function) {
+      this._onEdit();
     }
-
-    deadline.date = deadline.isEnabled
-      ? this._dueDate.toLocaleString(`en-GB`, {day: `2-digit`, month: `long`})
-      : ``;
-    deadline.time = deadline.isEnabled
-      ? this._dueDate.toLocaleString(`en-US`, {hour: `2-digit`, minute: `2-digit`, hour12: true})
-      : ``;
-
-    return deadline;
   }
 }
-
-export default Task;
