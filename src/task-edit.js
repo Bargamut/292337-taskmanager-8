@@ -1,5 +1,5 @@
 export default class TaskEdit {
-  constructor(index, card, arrayColors = []) {
+  constructor(index, card, colors = []) {
     this._index = index;
     this._title = card.title;
     this._tags = card.tags;
@@ -7,7 +7,7 @@ export default class TaskEdit {
     this._dueDate = card.dueDate;
     this._repeatingDays = card.repeatingDays;
     this._color = card.color;
-    this._arrayColors = arrayColors;
+    this._colors = colors;
 
     this._element = null;
 
@@ -247,7 +247,7 @@ export default class TaskEdit {
   _getCardColorsTemplate() {
     let template = ``;
 
-    for (const color of this._arrayColors) {
+    for (const color of this._colors) {
       template +=
         `<input
           type="radio"
