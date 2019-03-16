@@ -1,5 +1,14 @@
-export default class TaskEdit {
+import Component from './component';
+
+/**
+ * @description Класс компонента редактирования карточки задачи
+ * @export
+ * @class TaskEdit
+ * @extends {Component}
+ */
+export default class TaskEdit extends Component {
   constructor(index, card, colors = []) {
+    super();
     this._index = index;
     this._title = card.title;
     this._tags = card.tags;
@@ -8,10 +17,6 @@ export default class TaskEdit {
     this._repeatingDays = card.repeatingDays;
     this._color = card.color;
     this._colors = colors;
-
-    this._element = null;
-
-    this._nodeCardForm = null;
 
     this._onSubmit = null;
   }
@@ -39,16 +44,6 @@ export default class TaskEdit {
       : ``;
 
     return deadline;
-  }
-
-  /**
-   * @description Геттер DOM-элемента карточки задачи
-   * @readonly
-   * @memberof Task
-   * @return {Node} DOM-элемент карточки задачи
-   */
-  get element() {
-    return this._element;
   }
 
   /**
@@ -188,29 +183,19 @@ export default class TaskEdit {
   }
 
   /**
-   * @description Отрисовка карточки задачи с установкой обработчиков событий
-   * @return {Node} DOM-элемент карточки задачи
-   * @memberof Task
+   * @description Централизованное создание обработчиков событий для компонента
+   * @memberof TaskEdit
    */
-  render() {
-    this._element = this.template.content.cloneNode(true).firstChild;
-    this._nodeCardForm = this._element.querySelector(`.card__form`);
-
-    this._nodeCardForm.addEventListener(`submit`, this._onClickSubmit.bind(this));
-
-    return this._element;
+  createListeners() {
+    this._element.querySelector(`.card__form`).addEventListener(`submit`, this._onClickSubmit.bind(this));
   }
 
   /**
-   * @description Отвязка ссылок на DOM-элемент карточки
-   * задачи с удалением обработчиков событий
-   * @memberof Task
+   * @description Централизованное снятие обработчиков события для компонента
+   * @memberof TaskEdit
    */
-  unrender() {
-    this._nodeCardForm.removeEventListener(`submit`, this._onClickSubmit);
-
-    this._nodeCardForm = null;
-    this._element = null;
+  removeListeners() {
+    this._element.querySelector(`.card__form`).removeEventListener(`submit`, this._onClickSubmit);
   }
 
   /**
