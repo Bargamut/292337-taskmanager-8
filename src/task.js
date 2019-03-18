@@ -1,8 +1,12 @@
+import Component from './component';
+
 /**
  * @description Класс компонента Карточки задачи
+ * @export
  * @class Task
+ * @extends {Component}
  */
-export default class Task {
+export default class Task extends Component {
   /**
    * @description Конструктор экземпляра класса Task
    * @param {Number} index Индексный номер карточки
@@ -10,6 +14,7 @@ export default class Task {
    * @memberof Task
    */
   constructor(index, card) {
+    super();
     this._index = index;
     this._title = card.title;
     this._tags = card.tags;
@@ -17,10 +22,6 @@ export default class Task {
     this._dueDate = card.dueDate;
     this._repeatingDays = card.repeatingDays;
     this._color = card.color;
-
-    this._element = null;
-    this._nodeBtnEdit = null;
-    this._nodeBtnSave = null;
 
     this._onEdit = null;
   }
@@ -51,20 +52,10 @@ export default class Task {
   }
 
   /**
-   * @description Геттер DOM-элемента карточки задачи
-   * @readonly
-   * @memberof Task
-   * @return {Node} DOM-элемент карточки задачи
-   */
-  get element() {
-    return this._element;
-  }
-
-  /**
    * @description Возвращаем шаблон карточки задачи
    * @readonly
    * @memberof Task
-   * @return {Node} DOM-элемент <template> фильтра
+   * @return {Node} DOM-элемент <template> карточки задачи
    */
   get template() {
     const nodeCardTemplate = document.createElement(`template`);
@@ -162,30 +153,19 @@ export default class Task {
   }
 
   /**
-   * @description Отрисовка карточки задачи с установкой
-   * обработчиков событий
-   * @return {Node} DOM-элемент карточки задачи
+   * @description Централизованное создание обработчиков событий для компонента
    * @memberof Task
    */
-  render() {
-    this._element = this.template.content.cloneNode(true).firstChild;
-    this._nodeBtnEdit = this._element.querySelector(`.card__btn--edit`);
-
-    this._nodeBtnEdit.addEventListener(`click`, this._onClickEdit.bind(this));
-
-    return this._element;
+  createListeners() {
+    this._element.querySelector(`.card__btn--edit`).addEventListener(`click`, this._onClickEdit.bind(this));
   }
 
   /**
-   * @description Отвязка ссылок на DOM-элемент карточки
-   * задачи с удалением обработчиков событий
+   * @description Централизованное снятие обработчиков события для компонента
    * @memberof Task
    */
-  unrender() {
-    this._nodeBtnEdit.removeEventListener(`click`, this._onClickEdit);
-
-    this._nodeBtnEdit = null;
-    this._element = null;
+  removeListeners() {
+    this._element.querySelector(`.card__btn--edit`).removeEventListener(`click`, this._onClickEdit);
   }
 
   /**
