@@ -1,4 +1,6 @@
 import Component from './component';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 /**
  * @description Класс компонента редактирования карточки задачи
@@ -188,6 +190,21 @@ export default class TaskEdit extends Component {
     this._element.querySelector(`.card__form`).addEventListener(`submit`, this._onClickSubmit);
     this._element.querySelector(`.card__date-deadline-toggle`).addEventListener(`click`, this._onChangeDateLimit);
     this._element.querySelector(`.card__repeat-toggle`).addEventListener(`click`, this._onChangeRepeated);
+
+    if (this._state.isDateLimited) {
+      flatpickr(this._element.querySelector(`.card__date`), {
+        altInput: true,
+        altFormat: `j F`,
+        dateFormat: `j F`
+      });
+      flatpickr(this._element.querySelector(`.card__time`), {
+        enableTime: true,
+        noCalendar: true,
+        altInput: true,
+        altFormat: `h:i K`,
+        dateFormat: `h:i K `
+      });
+    }
   }
 
   /**
