@@ -60,6 +60,10 @@ export default class Component {
     this._element = null;
   }
 
+  /**
+   * @description Обновить данные компонента
+   * @memberof Component
+   */
   update() {}
 
   /**
