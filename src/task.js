@@ -1,4 +1,5 @@
 import Component from './component';
+import moment from 'moment';
 
 /**
  * @description Класс компонента Карточки задачи
@@ -37,6 +38,7 @@ export default class Task extends Component {
    */
   get template() {
     const nodeCardTemplate = document.createElement(`template`);
+    const currDate = moment(this._dueDate);
 
     nodeCardTemplate.innerHTML =
       `<article class="card card--${this._color} ${this._hasRepeatedDays() && `card--repeat`}">
@@ -67,6 +69,7 @@ export default class Task extends Component {
             <div class="card__settings">
               <div class="card__details">
                 <div class="card__dates">
+                  ${currDate.format(`DD MMMM HH:mm`)}
                   <fieldset class="card__date-deadline" ${!this._state.isDateLimited && `disabled`}>
                     <label class="card__input-deadline-wrap">
                       <input
@@ -74,7 +77,7 @@ export default class Task extends Component {
                         type="text"
                         placeholder="23 September"
                         name="date"
-                        value=""
+                        value="${currDate.format(`DD MMMM`)}"
                       />
                     </label>
                     <label class="card__input-deadline-wrap">
@@ -83,7 +86,7 @@ export default class Task extends Component {
                         type="text"
                         placeholder="5:23 PM"
                         name="time"
-                        value=""
+                        value="${currDate.format(`HH:mm`)}"
                       />
                     </label>
                   </fieldset>
