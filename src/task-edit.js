@@ -18,32 +18,14 @@ export default class TaskEdit extends Component {
     this._color = card.color;
     this._colors = colors;
 
+    this._onClickSubmit = this._onClickSubmit.bind(this);
     this._onSubmit = null;
-  }
 
-  /**
-   * @description Геттер срока выполнения
-   * @readonly
-   * @memberof Task
-   * @return {Object} Объект данных срока выполнения
-   */
-  get _deadline() {
-    const deadline = {
-      isEnabled: typeof this._dueDate !== `undefined`
-    };
+    this._state.isRepeated = false;
+    this._state.isDateLimited = false;
 
-    if (deadline.isEnabled) {
-      this._dueDate = new Date(this._dueDate);
-    }
-
-    deadline.date = deadline.isEnabled
-      ? this._dueDate.toLocaleString(`en-GB`, {day: `2-digit`, month: `long`})
-      : ``;
-    deadline.time = deadline.isEnabled
-      ? this._dueDate.toLocaleString(`en-US`, {hour: `2-digit`, minute: `2-digit`, hour12: true})
-      : ``;
-
-    return deadline;
+    this._onChangeDateLimit = this._onChangeDateLimit.bind(this);
+    this._onChangeRepeated = this._onChangeRepeated.bind(this);
   }
 
   /**
@@ -54,13 +36,9 @@ export default class TaskEdit extends Component {
    */
   get template() {
     const nodeCardTemplate = document.createElement(`template`);
-    const isRepeatingEnabled = Object.values(this._repeatingDays).some((day) => {
-      return day;
-    });
-    const deadline = this._deadline;
 
     nodeCardTemplate.innerHTML =
-      `<article class="card card--edit card--${this._color}">
+      `<article class="card card--edit card--${this._color} ${this._hasRepeatedDays() && `card--repeat`}">
         <form class="card__form" method="get">
           <div class="card__inner">
             <div class="card__control">
@@ -70,7 +48,7 @@ export default class TaskEdit extends Component {
             </div>
 
             <div class="card__color-bar">
-              <svg width="100%" height="10">
+              <svg class="card__color-bar-wave" width="100%" height="10">
                 <use xlink:href="#wave"></use>
               </svg>
             </div>
@@ -89,17 +67,17 @@ export default class TaskEdit extends Component {
               <div class="card__details">
                 <div class="card__dates">
                   <button class="card__date-deadline-toggle" type="button">
-                    date: <span class="card__date-status">${deadline.isEnabled ? `yes` : `no`}</span>
+                    date: <span class="card__date-status">${this._state.isDateLimited ? `yes` : `no`}</span>
                   </button>
 
-                  <fieldset class="card__date-deadline" ${deadline.isEnabled ? `` : `disabled`}>
+                  <fieldset class="card__date-deadline" ${!this._state.isDateLimited && `disabled`}>
                     <label class="card__input-deadline-wrap">
                       <input
                         class="card__date"
                         type="text"
                         placeholder="23 September"
                         name="date"
-                        value="${deadline.date}"
+                        value=""
                       />
                     </label>
                     <label class="card__input-deadline-wrap">
@@ -108,16 +86,16 @@ export default class TaskEdit extends Component {
                         type="text"
                         placeholder="5:23 PM"
                         name="time"
-                        value="${deadline.time}"
+                        value=""
                       />
                     </label>
                   </fieldset>
 
                   <button class="card__repeat-toggle" type="button">
-                    repeat:<span class="card__repeat-status">${isRepeatingEnabled ? `yes` : `no`}</span>
+                    repeat:<span class="card__repeat-status">${this._state.isRepeated ? `yes` : `no`}</span>
                   </button>
 
-                  <fieldset class="card__repeat-days" ${isRepeatingEnabled ? `` : `disabled`}>
+                  <fieldset class="card__repeat-days" ${!this._state.isRepeated && `disabled`}>
                     <div class="card__repeat-days-inner">
                       ${this._getCardRepeatDaysTemplate()}
                     </div>
@@ -182,12 +160,34 @@ export default class TaskEdit extends Component {
     this._onSubmit = callback;
   }
 
+  update(data) {
+    this._title = data.title;
+    this._tags = data.tags;
+    this._dueDate = data.dueDate;
+    this._repeatingDays = data.repeatingDays;
+    this._color = data.color;
+  }
+
+  static createMapper(target) {
+    return {
+      text: (value) => (target.title = value),
+      img: (value) => (target.picture = value),
+      date: (value) => (target.dueDate = value),
+      time: (value) => (target.dueDate = value),
+      repeat: (value) => (target.repeatingDays[value] = true),
+      hashtag: (value) => target.tags.add(value),
+      color: (value) => (target.color = value)
+    };
+  }
+
   /**
    * @description Централизованное создание обработчиков событий для компонента
    * @memberof TaskEdit
    */
   createListeners() {
-    this._element.querySelector(`.card__form`).addEventListener(`submit`, this._onClickSubmit.bind(this));
+    this._element.querySelector(`.card__form`).addEventListener(`submit`, this._onClickSubmit);
+    this._element.querySelector(`.card__date-deadline-toggle`).addEventListener(`click`, this._onChangeDateLimit);
+    this._element.querySelector(`.card__repeat-toggle`).addEventListener(`click`, this._onChangeRepeated);
   }
 
   /**
@@ -196,6 +196,16 @@ export default class TaskEdit extends Component {
    */
   removeListeners() {
     this._element.querySelector(`.card__form`).removeEventListener(`submit`, this._onClickSubmit);
+    this._element.querySelector(`.card__date-deadline-toggle`).removeEventListener(`click`, this._onChangeDateLimit);
+    this._element.querySelector(`.card__repeat-toggle`).removeEventListener(`click`, this._onChangeRepeated);
+  }
+
+  _hasRepeatedDays() {
+    return Object.values(this._repeatingDays).some((day) => day);
+  }
+
+  _partialUpdate() {
+    this._element.innerHTML = this.template.content.cloneNode(true).firstChild.innerHTML;
   }
 
   /**
@@ -280,6 +290,38 @@ export default class TaskEdit extends Component {
     return template;
   }
 
+  _processForm(formData) {
+    const tempEntry = {
+      title: ``,
+      dueDate: 0,
+      color: ``,
+      repeatingDays: {
+        mo: false,
+        tu: false,
+        we: false,
+        th: false,
+        fr: false,
+        sa: false,
+        su: false
+      },
+      isFavorite: false,
+      isDone: false,
+      tags: new Set()
+    };
+
+    const taskEditMapper = TaskEdit.createMapper(tempEntry);
+
+    for (const pair of formData.entries()) {
+      const [property, value] = pair;
+
+      if (taskEditMapper[property]) {
+        taskEditMapper[property](value);
+      }
+    }
+
+    return tempEntry;
+  }
+
   /**
    * @description Вызвать обработчик нажатия кнопки Save, если он функция
    * @param {Event} evt Объект события
@@ -288,8 +330,29 @@ export default class TaskEdit extends Component {
   _onClickSubmit(evt) {
     evt.preventDefault();
 
+    const form = this._element.querySelector(`.card__form`);
+
+    const formData = new FormData(form);
+    const newData = this._processForm(formData);
+
     if (this._onSubmit instanceof Function) {
-      this._onSubmit();
+      this._onSubmit(newData);
     }
+
+    this.update(newData);
+  }
+
+  _onChangeDateLimit() {
+    this._state.isDateLimited = !this._state.isDateLimited;
+    this.removeListeners();
+    this._partialUpdate();
+    this.createListeners();
+  }
+
+  _onChangeRepeated() {
+    this._state.isRepeated = !this._state.isRepeated;
+    this.removeListeners();
+    this._partialUpdate();
+    this.createListeners();
   }
 }

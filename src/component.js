@@ -14,6 +14,7 @@ export default class Component {
     }
 
     this._element = null;
+    this._state = {};
   }
 
   /**
@@ -58,6 +59,8 @@ export default class Component {
 
     this._element = null;
   }
+
+  update() {}
 
   /**
    * @description Централизованное создание обработчиков событий для компонента
