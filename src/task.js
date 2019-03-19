@@ -129,6 +129,11 @@ export default class Task extends Component {
     this._onEdit = callback;
   }
 
+  /**
+   * @description Обновить данные компонента
+   * @param {Object} data
+   * @memberof Task
+   */
   update(data) {
     this._title = data.title;
     this._tags = data.tags;
@@ -208,6 +213,11 @@ export default class Task extends Component {
     return template;
   }
 
+  /**
+   * @description Проверить, включён ли хоть один день повтора
+   * @return {Boolean} True в случае успеха
+   * @memberof Task
+   */
   _hasRepeatedDays() {
     return Object.values(this._repeatingDays).some((day) => day);
   }

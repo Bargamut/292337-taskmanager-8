@@ -9,6 +9,13 @@ import 'flatpickr/dist/flatpickr.min.css';
  * @extends {Component}
  */
 export default class TaskEdit extends Component {
+  /**
+   * Конструктор класса компонента TaskEdit
+   * @param {Number} index Индексный номер карточки
+   * @param {Object} card Данные карточки
+   * @param {Array} [colors=[]] Данные всех цветов, доступных для карточки
+   * @memberof TaskEdit
+   */
   constructor(index, card, colors = []) {
     super();
     this._index = index;
@@ -162,6 +169,11 @@ export default class TaskEdit extends Component {
     this._onSubmit = callback;
   }
 
+  /**
+   * @description Обновить данные компонента
+   * @param {Object} data
+   * @memberof Task
+   */
   update(data) {
     this._title = data.title;
     this._tags = data.tags;
@@ -170,6 +182,14 @@ export default class TaskEdit extends Component {
     this._color = data.color;
   }
 
+  /**
+   * @description Разметить данные для обновления компонента
+   * на основе данных формы
+   * @static
+   * @param {Object} target Целевой объект данных для обновления
+   * @return {Object} Объект с функциями переноса данных
+   * @memberof TaskEdit
+   */
   static createMapper(target) {
     return {
       text: (value) => (target.title = value),
@@ -217,10 +237,19 @@ export default class TaskEdit extends Component {
     this._element.querySelector(`.card__repeat-toggle`).removeEventListener(`click`, this._onChangeRepeated);
   }
 
+  /**
+   * @description Проверить, включён ли хоть один день повтора
+   * @return {Boolean} True в случае успеха
+   * @memberof Task
+   */
   _hasRepeatedDays() {
     return Object.values(this._repeatingDays).some((day) => day);
   }
 
+  /**
+   * @description Обновление содержимого DOM компонента
+   * @memberof TaskEdit
+   */
   _partialUpdate() {
     this._element.innerHTML = this.template.content.cloneNode(true).firstChild.innerHTML;
   }
@@ -307,6 +336,12 @@ export default class TaskEdit extends Component {
     return template;
   }
 
+  /**
+   * @description Преобразовать данные формы в данные карточки
+   * @param {FormData} formData
+   * @return {Object} Объект данных карточки
+   * @memberof TaskEdit
+   */
   _processForm(formData) {
     const tempEntry = {
       title: ``,
@@ -359,6 +394,10 @@ export default class TaskEdit extends Component {
     this.update(newData);
   }
 
+  /**
+   * @description Функция-обработчик переключения привязки к дате
+   * @memberof TaskEdit
+   */
   _onChangeDateLimit() {
     this._state.isDateLimited = !this._state.isDateLimited;
     this.removeListeners();
@@ -366,6 +405,10 @@ export default class TaskEdit extends Component {
     this.createListeners();
   }
 
+  /**
+   * @description Функуия-обработчик переключения повторяемости карточки
+   * @memberof TaskEdit
+   */
   _onChangeRepeated() {
     this._state.isRepeated = !this._state.isRepeated;
     this.removeListeners();
