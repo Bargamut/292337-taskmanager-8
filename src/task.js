@@ -1,4 +1,5 @@
 import Component from './component';
+import moment from 'moment';
 
 /**
  * @description Класс компонента Карточки задачи
@@ -24,31 +25,9 @@ export default class Task extends Component {
     this._color = card.color;
 
     this._onEdit = null;
-  }
 
-  /**
-   * @description Геттер срока выполнения
-   * @readonly
-   * @memberof Task
-   * @return {Object} Объект данных срока выполнения
-   */
-  get _deadline() {
-    const deadline = {
-      isEnabled: typeof this._dueDate !== `undefined`
-    };
-
-    if (deadline.isEnabled) {
-      this._dueDate = new Date(this._dueDate);
-    }
-
-    deadline.date = deadline.isEnabled
-      ? this._dueDate.toLocaleString(`en-GB`, {day: `2-digit`, month: `long`})
-      : ``;
-    deadline.time = deadline.isEnabled
-      ? this._dueDate.toLocaleString(`en-US`, {hour: `2-digit`, minute: `2-digit`, hour12: true})
-      : ``;
-
-    return deadline;
+    this._state.isRepeated = false;
+    this._state.isDateLimited = false;
   }
 
   /**
@@ -59,13 +38,10 @@ export default class Task extends Component {
    */
   get template() {
     const nodeCardTemplate = document.createElement(`template`);
-    const isRepeatingEnabled = Object.values(this._repeatingDays).some((day) => {
-      return day;
-    });
-    const deadline = this._deadline;
+    const currDate = moment(this._dueDate);
 
     nodeCardTemplate.innerHTML =
-      `<article class="card card--${this._color}">
+      `<article class="card card--${this._color} ${this._hasRepeatedDays() && `card--repeat`}">
         <form class="card__form" method="get">
           <div class="card__inner">
             <div class="card__control">
@@ -75,7 +51,7 @@ export default class Task extends Component {
             </div>
 
             <div class="card__color-bar">
-              <svg width="100%" height="10">
+              <svg class="card__color-bar-wave" width="100%" height="10">
                 <use xlink:href="#wave"></use>
               </svg>
             </div>
@@ -93,14 +69,15 @@ export default class Task extends Component {
             <div class="card__settings">
               <div class="card__details">
                 <div class="card__dates">
-                  <fieldset class="card__date-deadline" ${deadline.isEnabled ? `` : `disabled`}>
+                  ${currDate.format(`DD MMMM HH:mm`)}
+                  <fieldset class="card__date-deadline" ${!this._state.isDateLimited && `disabled`}>
                     <label class="card__input-deadline-wrap">
                       <input
                         class="card__date"
                         type="text"
                         placeholder="23 September"
                         name="date"
-                        value="${deadline.date}"
+                        value="${currDate.format(`DD MMMM`)}"
                       />
                     </label>
                     <label class="card__input-deadline-wrap">
@@ -109,12 +86,12 @@ export default class Task extends Component {
                         type="text"
                         placeholder="5:23 PM"
                         name="time"
-                        value="${deadline.time}"
+                        value="${currDate.format(`HH:mm`)}"
                       />
                     </label>
                   </fieldset>
 
-                  <fieldset class="card__repeat-days" ${isRepeatingEnabled ? `` : `disabled`}>
+                  <fieldset class="card__repeat-days" ${!this._state.isRepeated && `disabled`}>
                     <div class="card__repeat-days-inner">
                       ${this._getCardRepeatDaysTemplate()}
                     </div>
@@ -128,7 +105,7 @@ export default class Task extends Component {
                 </div>
               </div>
 
-              <label class="card__img-wrap ${!this._picture.trim() ? `card__img-wrap--empty` : ``}">
+              <label class="card__img-wrap ${!this._picture.trim() && `card__img-wrap--empty`}">
                 <img
                   src="${this._picture}"
                   alt="task picture"
@@ -150,6 +127,19 @@ export default class Task extends Component {
    */
   set onEdit(callback) {
     this._onEdit = callback;
+  }
+
+  /**
+   * @description Обновить данные компонента
+   * @param {Object} data
+   * @memberof Task
+   */
+  update(data) {
+    this._title = data.title;
+    this._tags = data.tags;
+    this._dueDate = data.dueDate;
+    this._repeatingDays = data.repeatingDays;
+    this._color = data.color;
   }
 
   /**
@@ -221,6 +211,15 @@ export default class Task extends Component {
     });
 
     return template;
+  }
+
+  /**
+   * @description Проверить, включён ли хоть один день повтора
+   * @return {Boolean} True в случае успеха
+   * @memberof Task
+   */
+  _hasRepeatedDays() {
+    return Object.values(this._repeatingDays).some((day) => day);
   }
 
   /**

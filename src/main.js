@@ -60,7 +60,10 @@ function renderTaskBoard(nodeTaskBoard, taskCards = []) {
       componentTask.unrender();
     };
 
-    componentTaskEdit.onSubmit = () => {
+    componentTaskEdit.onSubmit = (newData) => {
+      Object.assign(card, newData);
+
+      componentTask.update(card);
       componentTask.render();
       nodeTaskBoard.replaceChild(componentTask.element, componentTaskEdit.element);
       componentTaskEdit.unrender();

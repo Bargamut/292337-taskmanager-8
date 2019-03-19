@@ -20,13 +20,13 @@ const generateCardData = () => (
     picture: `https://picsum.photos/100/100?r=${Math.random()}`,
     color: arrayColors[getRandomInt(arrayColors.length)],
     repeatingDays: {
-      mo: Math.random() > 0.5,
-      tu: Math.random() > 0.5,
-      we: Math.random() > 0.5,
-      th: Math.random() > 0.5,
-      fr: Math.random() > 0.5,
-      sa: Math.random() > 0.5,
-      su: Math.random() > 0.5
+      mo: Math.random() > 0.9,
+      tu: Math.random() > 0.9,
+      we: Math.random() > 0.9,
+      th: Math.random() > 0.9,
+      fr: Math.random() > 0.9,
+      sa: Math.random() > 0.9,
+      su: Math.random() > 0.9
     },
     isFavorite: Math.random() > 0.5,
     isDone: Math.random() > 0.5,
