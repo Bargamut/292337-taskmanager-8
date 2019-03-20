@@ -28,7 +28,9 @@ export default class TaskEdit extends Component {
     this._colors = colors;
 
     this._onClickSubmit = this._onClickSubmit.bind(this);
+    this._onClickDelete = this._onClickDelete.bind(this);
     this._onSubmit = null;
+    this._onDelete = null;
 
     this._state.isRepeated = false;
     this._state.isDateLimited = false;
@@ -170,9 +172,18 @@ export default class TaskEdit extends Component {
   }
 
   /**
+   * @description Сеттер обработчика клика по кнопке Delete
+   * @param {Funcion} callback Функция-обработчик
+   * @memberof TaskEdit
+   */
+  set onDelete(callback) {
+    this._onDelete = callback;
+  }
+
+  /**
    * @description Обновить данные компонента
-   * @param {Object} data
-   * @memberof Task
+   * @param {Object} data Объект новых данных компонента
+   * @memberof TaskEdit
    */
   update(data) {
     this._title = data.title;
@@ -392,6 +403,19 @@ export default class TaskEdit extends Component {
     }
 
     this.update(newData);
+  }
+
+  /**
+   * @description Вызвать обработчик нажатия кнопки Delete, если он функция
+   * @param {Event} evt Объект события
+   * @memberof TaskEdit
+   */
+  _onClickDelete(evt) {
+    evt.preventDefault();
+
+    if (this._onDelete instanceof Function) {
+      this._onDelete();
+    }
   }
 
   /**
