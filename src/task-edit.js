@@ -221,6 +221,7 @@ export default class TaskEdit extends Component {
     this._element.querySelector(`.card__form`).addEventListener(`submit`, this._onClickSubmit);
     this._element.querySelector(`.card__date-deadline-toggle`).addEventListener(`click`, this._onChangeDateLimit);
     this._element.querySelector(`.card__repeat-toggle`).addEventListener(`click`, this._onChangeRepeated);
+    this._element.querySelector(`.card__delete`).addEventListener(`click`, this._onClickDelete);
 
     if (this._state.isDateLimited) {
       flatpickr(this._element.querySelector(`.card__date`), {
@@ -246,6 +247,7 @@ export default class TaskEdit extends Component {
     this._element.querySelector(`.card__form`).removeEventListener(`submit`, this._onClickSubmit);
     this._element.querySelector(`.card__date-deadline-toggle`).removeEventListener(`click`, this._onChangeDateLimit);
     this._element.querySelector(`.card__repeat-toggle`).removeEventListener(`click`, this._onChangeRepeated);
+    this._element.querySelector(`.card__delete`).removeEventListener(`click`, this._onClickDelete);
   }
 
   /**
