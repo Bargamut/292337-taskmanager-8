@@ -41,6 +41,15 @@ window.addEventListener(`DOMContentLoaded`, function () {
 });
 
 /**
+ * @description Удалить задачу
+ * @param {Array} tasks Массив задач
+ * @param {Number} index индекс Удаляемой задачи
+ */
+const removeTask = (tasks, index) => {
+  tasks[index] = null;
+};
+
+/**
  * @description Отрисовка доски задач
  * @author Paul "Bargamut" Petrov
  * @param {Node} nodeTaskBoard DOM-элемент блока задач
@@ -66,6 +75,13 @@ function renderTaskBoard(nodeTaskBoard, taskCards = []) {
       componentTask.update(card);
       componentTask.render();
       nodeTaskBoard.replaceChild(componentTask.element, componentTaskEdit.element);
+      componentTaskEdit.unrender();
+    };
+
+    componentTaskEdit.onDelete = () => {
+      removeTask(cards, index);
+
+      nodeTaskBoard.removeChild(componentTaskEdit.element);
       componentTaskEdit.unrender();
     };
 
