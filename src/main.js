@@ -35,8 +35,6 @@ const filterTasks = (tasks, filterId) => {
       return tasks.filter((task) => {
         const a = moment(task.dueDate).isSame(Date.now(), `day`);
 
-        console.log(a, new Date(task.dueDate)); // eslint-disable-line
-
         return a;
       });
     case `repeating`:
