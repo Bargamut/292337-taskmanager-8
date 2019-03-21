@@ -129,7 +129,7 @@ export default class TaskEdit extends Component {
                 </div>
               </div>
 
-              <label class="card__img-wrap card__img-wrap--empty">
+              <label class="card__img-wrap ${!this._picture.trim() && `card__img-wrap--empty`}">
                 <input
                   type="file"
                   class="card__img-input visually-hidden"
@@ -204,7 +204,6 @@ export default class TaskEdit extends Component {
   static createMapper(target) {
     return {
       text: (value) => (target.title = value),
-      img: (value) => (target.picture = value),
       date: (value) => (target.dueDate = value),
       time: (value) => (target.dueDate = value),
       repeat: (value) => (target.repeatingDays[value] = true),

@@ -24,6 +24,7 @@ export default class Task extends Component {
     this._repeatingDays = card.repeatingDays;
     this._color = card.color;
 
+    this._onClickEdit = this._onClickEdit.bind(this);
     this._onEdit = null;
 
     this._state.isRepeated = false;
@@ -147,7 +148,7 @@ export default class Task extends Component {
    * @memberof Task
    */
   createListeners() {
-    this._element.querySelector(`.card__btn--edit`).addEventListener(`click`, this._onClickEdit.bind(this));
+    this._element.querySelector(`.card__btn--edit`).addEventListener(`click`, this._onClickEdit);
   }
 
   /**

@@ -1,43 +1,19 @@
-import makeFilterTemplate from './make-filter';
+import Filter from './filter';
 import Task from './task';
 import TaskEdit from './task-edit';
-import generateCardData, {arrayColors} from './make-data';
-
-const filters = {
-  all: {
-    caption: `All`, count: 42, checked: true
-  },
-  overdue: {
-    caption: `Overdue`, count: 11
-  },
-  today: {
-    caption: `Today`, count: 76
-  },
-  favorites: {
-    caption: `Favorites`, count: 47
-  },
-  repeating: {
-    caption: `Repeating`, count: 152
-  },
-  tags: {
-    caption: `Tags`, count: 279
-  },
-  archive: {
-    caption: `Archive`, count: 100030
-  }
-};
+import generateCardData, {filters, arrayColors} from './make-data';
 
 const cards = [];
 
 window.addEventListener(`DOMContentLoaded`, function () {
-  const nodeFiltersBar = document.querySelector(`.main__filter`);
+  const nodeTaskBoard = document.querySelector(`.board__tasks`);
 
   while (cards.length < 7) {
     cards.push(generateCardData());
   }
 
-  renderTaskBoard(document.querySelector(`.board__tasks`), cards);
-  renderFiltersBar(nodeFiltersBar, filters);
+  renderTaskBoard(nodeTaskBoard, cards);
+  renderFiltersBar(document.querySelector(`.main__filter`), filters, nodeTaskBoard);
 });
 
 /**
@@ -49,9 +25,23 @@ const removeTask = (tasks, index) => {
   tasks[index] = null;
 };
 
+const filterTasks = (tasks, filterId) => {
+  switch (filterId) {
+    case `overdue`:
+      return tasks.filter((task) => task.dueDate < Date.now());
+    case `today`:
+      return tasks.filter((task) => task.dueDate === Date.now());
+    case `repeating`:
+      return tasks.filter((task) => [...Object.entries(task.repeatingDays)]
+          .some((value) => value[1])
+      );
+    case `all`:
+    default: return tasks;
+  }
+};
+
 /**
  * @description Отрисовка доски задач
- * @author Paul "Bargamut" Petrov
  * @param {Node} nodeTaskBoard DOM-элемент блока задач
  * @param {Array} [taskCards=[]] Массив объектов описания карточек
  */
@@ -97,45 +87,27 @@ function renderTaskBoard(nodeTaskBoard, taskCards = []) {
 /**
  * @description Отрисовка фильтров с навешиванием обработчика кликов по ним
  * @param {Node} nodeFiltersBar DOM-элемент блока фильтров
- * @param {Object} [taskFilters={}] Объект описания свойств фильтров
+ * @param {Map} [taskFilters=new Map()] Map описания свойств фильтров
+ * @param {Node} nodeTaskBoard DOM-элемент блока задач
  */
-function renderFiltersBar(nodeFiltersBar, taskFilters = {}) {
+function renderFiltersBar(nodeFiltersBar, taskFilters = new Map(), nodeTaskBoard) {
   const docFragmentFilters = document.createDocumentFragment();
 
   // Собираем фильтры
-  for (const key in taskFilters) {
-    if (!taskFilters.hasOwnProperty(key)) {
-      continue;
-    }
+  for (const [filterId, filter] of taskFilters.entries()) {
+    const componentFilter = new Filter(filterId, filter);
+
+    componentFilter.onFilter = () => {
+      const filteredTasks = filterTasks(cards, filterId);
+
+      renderTaskBoard(nodeTaskBoard, filteredTasks);
+    };
 
     docFragmentFilters.appendChild(
-        makeFilterTemplate(key, taskFilters[key]).content.cloneNode(true)
+        componentFilter.render()
     );
   }
 
   nodeFiltersBar.innerHTML = ``;
   nodeFiltersBar.appendChild(docFragmentFilters);
-  nodeFiltersBar.addEventListener(`click`, onFilterClick);
-}
-
-/**
- * @description Обработчик клика по фильтру
- * @author Paul "Bargamut" Petrov
- * @date 2019-02-21
- * @param {Event} evt Объект события
- */
-function onFilterClick(evt) {
-  const nodeTarget = evt.target;
-  const randomNumTasks = Math.floor(Math.random() * (20 - 1)) + 1;
-  const randomCards = [];
-
-  if (!nodeTarget.classList.contains(`filter__label`)) {
-    return;
-  }
-
-  while (randomCards.length <= randomNumTasks) {
-    randomCards.push(generateCardData());
-  }
-
-  renderTaskBoard(document.querySelector(`.board__tasks`), randomCards);
 }
