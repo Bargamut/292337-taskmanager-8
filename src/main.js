@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import Filter from './filter';
 import Task from './task';
 import TaskEdit from './task-edit';
@@ -30,7 +32,13 @@ const filterTasks = (tasks, filterId) => {
     case `overdue`:
       return tasks.filter((task) => task.dueDate < Date.now());
     case `today`:
-      return tasks.filter((task) => task.dueDate === Date.now());
+      return tasks.filter((task) => {
+        const a = moment(task.dueDate).isSame(Date.now(), `day`);
+
+        console.log(a, new Date(task.dueDate)); // eslint-disable-line
+
+        return a;
+      });
     case `repeating`:
       return tasks.filter((task) => [...Object.entries(task.repeatingDays)]
           .some((value) => value[1])
