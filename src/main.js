@@ -3,6 +3,7 @@ import moment from 'moment';
 import Filter from './filter';
 import Task from './task';
 import TaskEdit from './task-edit';
+import Stat from './stat';
 import generateCardData, {filters, arrayColors} from './make-data';
 
 const cards = [];
