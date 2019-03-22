@@ -1,3 +1,5 @@
+const cards = [];
+
 export const filters = new Map([
   [
     `all`, {caption: `All`, count: 0}
@@ -58,4 +60,8 @@ const generateCardData = () => (
 
 const getRandomInt = (max, min = 0) => Math.floor(Math.random() * (max - min)) + min;
 
-export default generateCardData;
+while (cards.length < 7) {
+  cards.push(generateCardData());
+}
+
+export default cards;

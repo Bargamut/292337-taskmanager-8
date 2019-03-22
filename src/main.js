@@ -3,17 +3,11 @@ import moment from 'moment';
 import Filter from './filter';
 import Task from './task';
 import TaskEdit from './task-edit';
-import Stat from './stat';
-import generateCardData, {filters, arrayColors} from './make-data';
-
-const cards = [];
+import './stat';
+import cards, {filters, arrayColors} from './make-data';
 
 window.addEventListener(`DOMContentLoaded`, function () {
   const nodeTaskBoard = document.querySelector(`.board__tasks`);
-
-  while (cards.length < 7) {
-    cards.push(generateCardData());
-  }
 
   renderTaskBoard(nodeTaskBoard, cards);
   renderFiltersBar(document.querySelector(`.main__filter`), filters, nodeTaskBoard);
