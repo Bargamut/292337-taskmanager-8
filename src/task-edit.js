@@ -1,6 +1,7 @@
 import Component from './component';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import moment from 'moment';
 
 /**
  * @description Класс компонента редактирования карточки задачи
@@ -204,8 +205,25 @@ export default class TaskEdit extends Component {
   static createMapper(target) {
     return {
       text: (value) => (target.title = value),
-      date: (value) => (target.dueDate = value),
-      time: (value) => (target.dueDate = value),
+      date: (value) => {
+        const currentDate = moment(target.dueDate);
+        const newDate = moment(value, `DD MMMM`);
+
+        target.dueDate = currentDate.set({
+          year: newDate.get(`year`),
+          month: newDate.get(`month`),
+          date: newDate.get(`date`)
+        }).valueOf();
+      },
+      time: (value) => {
+        const currentDate = moment(target.dueDate);
+        const newDate = moment(value, `HH:mm A`);
+
+        target.dueDate = currentDate.set({
+          hour: newDate.get(`hour`),
+          minute: newDate.get(`minute`)
+        }).valueOf();
+      },
       repeat: (value) => (target.repeatingDays[value] = true),
       hashtag: (value) => target.tags.add(value),
       color: (value) => (target.color = value)
