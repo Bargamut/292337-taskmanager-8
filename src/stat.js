@@ -1,13 +1,16 @@
-import Chart from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import flatpickr from 'flatpickr';
 import moment from 'moment';
 
 import StatChart from './stat-chart';
+import StatFilter from './stat-filter';
 import tasks from './make-data';
 
-document.addEventListener(`DOMContentLoaded`, () => {
-  const chartTags = new Chart(document.querySelector(`.statistic__tags`), {
+const componentStatFilter = new StatFilter(tasks);
+const componentChartColors = new StatChart({
+  type: `colors`,
+  width: 400,
+  height: 300,
+  conf: {
     plugins: [ChartDataLabels],
     type: `pie`,
     data: {
@@ -56,8 +59,13 @@ document.addEventListener(`DOMContentLoaded`, () => {
         }
       }
     }
-  });
-  const chartColors = new Chart(document.querySelector(`.statistic__colors`), {
+  }
+});
+const componentChartTags = new StatChart({
+  type: `tags`,
+  width: 400,
+  height: 300,
+  conf: {
     plugins: [ChartDataLabels],
     type: `pie`,
     data: {
@@ -106,8 +114,10 @@ document.addEventListener(`DOMContentLoaded`, () => {
         }
       }
     }
-  });
+  }
+});
 
+document.addEventListener(`DOMContentLoaded`, () => {
   document.querySelector(`#control__task`).addEventListener(`click`, () => {
     document.querySelector(`.board.container`).classList.remove(`visually-hidden`);
     document.querySelector(`.statistic`).classList.add(`visually-hidden`);
@@ -117,58 +127,9 @@ document.addEventListener(`DOMContentLoaded`, () => {
     document.querySelector(`.statistic`).classList.remove(`visually-hidden`);
   });
 
-  flatpickr(document.querySelector(`.statistic__period-input`), {
-    mode: `range`,
-    dateFormat: `d M`,
-    defaultDate: [
-      moment().startOf(`isoWeek`).valueOf(),
-      moment().endOf(`isoWeek`).valueOf()
-    ],
-    locale: {
-      rangeSeparator: ` - `,
-      firstDayOfWeek: 1
-    },
-    onReady: (selectedDates) => {
-      const filteredTasks = filterTasks(tasks, selectedDates);
-
-      updateCharts(filteredTasks, chartColors, chartTags);
-    },
-    onChange: (selectedDates) => {
-      const filteredTasks = filterTasks(tasks, selectedDates);
-
-      updateCharts(filteredTasks, chartColors, chartTags);
-    }
-  });
+  renderCharts();
+  renderStatFilter();
 });
-
-const updateCharts = (dataTasks, chartColors, chartTags) => {
-  const processedDataColors = processTasks(`color`, dataTasks);
-  const processedDataTags = processTasks(`tags`, dataTasks);
-
-  // В разрезе цветов
-  chartColors.options.title.text = `DONE BY: COLORS`;
-  chartColors.data.labels = [...processedDataColors.keys()].map((elem) => `#${elem}`);
-  chartColors.data.datasets = [
-    {
-      data: [...processedDataColors.values()].map((elem) => elem.total),
-      backgroundColor: [...processedDataColors.values()].map((elem) => elem.bgColor)
-    }
-  ];
-
-  chartColors.update();
-
-  // В разрезе тегов
-  chartTags.options.title.text = `DONE BY: TAGS`;
-  chartTags.data.labels = [...processedDataTags.keys()].map((elem) => `#${elem}`);
-  chartTags.data.datasets = [
-    {
-      data: [...processedDataTags.values()].map((elem) => elem.total),
-      backgroundColor: [...processedDataTags.values()].map((elem) => elem.bgColor)
-    }
-  ];
-
-  chartTags.update();
-};
 
 const filterTasks = (dataTasks, selectedDates) => {
   const [since, to] = selectedDates;
@@ -176,57 +137,39 @@ const filterTasks = (dataTasks, selectedDates) => {
   return dataTasks.filter((task) => moment(task.dueDate).isBetween(moment(since).startOf(`day`), moment(to).endOf(`day`), null, `[]`));
 };
 
-const mapper = (target) => {
-  return {
-    color: (value) => {
-      if (target.has(value.color)) {
-        target.get(value.color).total++;
-        return;
-      }
+const updateStat = (selectedDates) => {
+  const filteredTasks = filterTasks(tasks, selectedDates);
 
-      target.set(value.color, {
-        total: 1,
-        bgColor: `${value.color}`
-      });
-    },
-    tags: (value) => {
-      value.tags.forEach((tag) => {
-        if (target.has(tag)) {
-          target.get(tag).total++;
-          return;
-        }
-
-        target.set(tag, {
-          total: 1,
-          bgColor: `#${(0x1000000 + Math.random() * 0xFFFFFF).toString(16).substr(1, 6)}`
-        });
-      });
-    }
-  };
+  componentChartColors.update(filteredTasks);
+  componentChartTags.update(filteredTasks);
 };
 
-const processTasks = (dataType, dataTasks) => {
-  const tempEntry = new Map();
-  const statMapper = mapper(tempEntry);
+const renderStatFilter = () => {
+  const nodeStatPeriod = document.querySelector(`.statistic__period`);
 
-  dataTasks.forEach((task) => {
-    if (statMapper[dataType]) {
-      statMapper[dataType](task);
-    }
-  });
+  componentStatFilter.onReady = updateStat;
+  componentStatFilter.onFilter = updateStat;
 
-  return tempEntry;
+  nodeStatPeriod.parentNode.replaceChild(componentStatFilter.render(), nodeStatPeriod);
 };
 
-// const renderStatFilter = () => {
-//   const componentStatFilter = new StatFilter(tasks);
+const renderCharts = () => {
+  const nodeChartColors = document.querySelector(`.statistic__colors`);
+  const nodeChartTags = document.querySelector(`.statistic__tags`);
 
-//   componentStatFilter.onFilter = () => {
-//     const filteredTasks = filterTasks(tasks, selectedDates);
+  componentChartColors.render();
+  componentChartTags.render();
 
-//     renderCharts(filteredTasks);
-//   };
+  nodeChartColors.parentNode.replaceChild(
+      componentChartColors.element,
+      nodeChartColors
+  );
 
-//   const nodeStatPeriod = document.querySelector(`.statistic__period`);
-//   nodeStatPeriod.parentNode.replaceChild(componentStatFilter.render(), nodeStatPeriod);
-// };
+  nodeChartTags.parentNode.replaceChild(
+      componentChartTags.render(),
+      nodeChartTags
+  );
+
+  componentChartColors.createChart();
+  componentChartTags.createChart();
+};

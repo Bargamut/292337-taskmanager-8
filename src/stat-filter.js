@@ -7,6 +7,12 @@ export default class StatFilter extends Component {
     super();
 
     this._tasks = tasks;
+
+    this._onChangeFilter = this._onChangeFilter.bind(this);
+    this._onFilter = null;
+
+    this._onReadyFilter = this._onReadyFilter.bind(this);
+    this._onReady = null;
   }
 
   get template() {
@@ -37,6 +43,10 @@ export default class StatFilter extends Component {
     this._onFilter = callback;
   }
 
+  set onReady(callback) {
+    this._onReady = callback;
+  }
+
   createListeners() {
     flatpickr(this._element.querySelector(`.statistic__period-input`), {
       mode: `range`,
@@ -50,29 +60,25 @@ export default class StatFilter extends Component {
         firstDayOfWeek: 1
       },
       onReady: (selectedDates) => {
-        const [since, to] = selectedDates;
-
-        const filteredTasks = this._tasks.filter(
-            (task) => moment(task.dueDate).isBetween(
-                moment(since).startOf(`day`),
-                moment(to).endOf(`day`),
-                null, `[]`
-            )
-        );
-
-        this._onChangeFilter(filteredTasks);
+        this._onChangeFilter(selectedDates);
       },
-      onChange: () => {
-        
+      onChange: (selectedDates) => {
+        this._onChangeFilter(selectedDates);
       }
     });
   }
 
   removeListeners() {}
 
-  _onChangeFilter(filteredTasks) {
+  _onChangeFilter(selectedDates) {
     if (this._onFilter instanceof Function) {
-      this._onFilter(filteredTasks);
+      this._onFilter(selectedDates);
+    }
+  }
+
+  _onReadyFilter(selectedDates) {
+    if (this._onReady instanceof Function) {
+      this._onReady(selectedDates);
     }
   }
 }
