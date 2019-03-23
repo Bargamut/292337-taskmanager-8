@@ -36,7 +36,9 @@ export const arrayColors = [`black`, `yellow`, `blue`, `green`, `pink`];
 const generateCardData = () => (
   {
     title: arrayTitles[getRandomInt(3)],
-    dueDate: Date.now() + getRandomInt(WEEK_MILLISECONDS, -WEEK_MILLISECONDS),
+    dueDate: Math.random() > 0.6
+      ? Date.now() + getRandomInt(WEEK_MILLISECONDS, -WEEK_MILLISECONDS)
+      : null,
     picture: `https://picsum.photos/100/100?r=${Math.random()}`,
     color: arrayColors[getRandomInt(arrayColors.length)],
     repeatingDays: {

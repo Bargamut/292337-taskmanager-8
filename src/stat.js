@@ -5,7 +5,7 @@ import StatChart from './stat-chart';
 import StatFilter from './stat-filter';
 import tasks from './make-data';
 
-const componentStatFilter = new StatFilter(tasks);
+const componentStatFilter = new StatFilter();
 const componentChartColors = new StatChart({
   type: `colors`,
   width: 400,
@@ -131,28 +131,45 @@ document.addEventListener(`DOMContentLoaded`, () => {
   renderStatFilter();
 });
 
+/**
+ * @description Отфильтровать задачи на основе данных фильтра
+ * @param {Array} dataTasks Массив задач
+ * @param {Array} selectedDates Массив дат диапазона выборки
+ * @return {Array} Отфильтрованный массив задач
+ */
 const filterTasks = (dataTasks, selectedDates) => {
   const [since, to] = selectedDates;
 
   return dataTasks.filter((task) => moment(task.dueDate).isBetween(moment(since).startOf(`day`), moment(to).endOf(`day`), null, `[]`));
 };
 
-const updateStat = (selectedDates) => {
+/**
+ * @description Обновить компоненты на основе новой выборки
+ * @param {Array} selectedDates Массив дат диапазона выборки
+ */
+const updateComponents = (selectedDates) => {
   const filteredTasks = filterTasks(tasks, selectedDates);
 
+  componentStatFilter.update(filteredTasks.length);
   componentChartColors.update(filteredTasks);
   componentChartTags.update(filteredTasks);
 };
 
+/**
+ * @description Отрисовать компонент фильтра статистики
+ */
 const renderStatFilter = () => {
   const nodeStatPeriod = document.querySelector(`.statistic__period`);
 
-  componentStatFilter.onReady = updateStat;
-  componentStatFilter.onFilter = updateStat;
+  componentStatFilter.onReady = updateComponents;
+  componentStatFilter.onFilter = updateComponents;
 
   nodeStatPeriod.parentNode.replaceChild(componentStatFilter.render(), nodeStatPeriod);
 };
 
+/**
+ * @description Отрисовать компоненты графиков статистики
+ */
 const renderCharts = () => {
   const nodeChartColors = document.querySelector(`.statistic__colors`);
   const nodeChartTags = document.querySelector(`.statistic__tags`);

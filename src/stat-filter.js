@@ -2,11 +2,19 @@ import Component from './component';
 import flatpickr from 'flatpickr';
 import moment from 'moment';
 
+/**
+ * @description Класс компонента фильтра выборки дат статистики
+ * @export
+ * @class StatFilter
+ * @extends {Component}
+ */
 export default class StatFilter extends Component {
-  constructor(tasks) {
+  /**
+   * Конструктор класса StatFilter
+   * @memberof StatFilter
+   */
+  constructor() {
     super();
-
-    this._tasks = tasks;
 
     this._onChangeFilter = this._onChangeFilter.bind(this);
     this._onFilter = null;
@@ -15,6 +23,12 @@ export default class StatFilter extends Component {
     this._onReady = null;
   }
 
+  /**
+   * @description Возвращаем шаблон компонента фильра
+   * @readonly
+   * @memberof StatFilter
+   * @return {Node} DOM-элемент <template> карточки задачи
+   */
   get template() {
     const nodeStatFilterTemplate = document.createElement(`template`);
 
@@ -39,14 +53,39 @@ export default class StatFilter extends Component {
     return nodeStatFilterTemplate;
   }
 
+  /**
+   * @description Сеттер обработчика при обновлении Фильтра
+   * @param {Function} callback Функция-обработчик
+   * @memberof StatFilter
+   */
   set onFilter(callback) {
     this._onFilter = callback;
   }
 
+  /**
+   * @description Сеттер обработчика при готовности фильтра
+   * @param {Function} callback Функция-обработчик
+   * @memberof StatFilter
+   */
   set onReady(callback) {
     this._onReady = callback;
   }
 
+  /**
+   * @description Обновление данных фильтра
+   * @param {Number} countTasks Общее количество отфильтрованных записей
+   * @memberof StatFilter
+   */
+  update(countTasks) {
+    const nodeStatTaskFound = this._element.querySelector(`.statistic__task-found`);
+
+    nodeStatTaskFound.innerHTML = countTasks;
+  }
+
+  /**
+   * @description Централизованное создание обработчиков событий для компонента
+   * @memberof StatFilter
+   */
   createListeners() {
     flatpickr(this._element.querySelector(`.statistic__period-input`), {
       mode: `range`,
@@ -68,14 +107,22 @@ export default class StatFilter extends Component {
     });
   }
 
-  removeListeners() {}
-
+  /**
+   * @description Функция-обработчик обновления фильтра
+   * @param {Array} selectedDates Массив из двух дат диапазона выборки
+   * @memberof StatFilter
+   */
   _onChangeFilter(selectedDates) {
     if (this._onFilter instanceof Function) {
       this._onFilter(selectedDates);
     }
   }
 
+  /**
+   * @description Функция-обработчик события готовности фильтра
+   * @param {Array} selectedDates Массив из двух дат диапазона выборки
+   * @memberof StatFilter
+   */
   _onReadyFilter(selectedDates) {
     if (this._onReady instanceof Function) {
       this._onReady(selectedDates);

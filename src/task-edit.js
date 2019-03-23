@@ -33,8 +33,8 @@ export default class TaskEdit extends Component {
     this._onSubmit = null;
     this._onDelete = null;
 
-    this._state.isRepeated = false;
-    this._state.isDateLimited = false;
+    this._state.isRepeated = this._hasRepeatingDays();
+    this._state.isDateLimited = this._hasDateLimit();
 
     this._onChangeDateLimit = this._onChangeDateLimit.bind(this);
     this._onChangeRepeated = this._onChangeRepeated.bind(this);
@@ -48,9 +48,10 @@ export default class TaskEdit extends Component {
    */
   get template() {
     const nodeCardTemplate = document.createElement(`template`);
+    const currentDate = moment(this._dueDate);
 
     nodeCardTemplate.innerHTML =
-      `<article class="card card--edit card--${this._color} ${this._hasRepeatedDays() && `card--repeat`}">
+      `<article class="card card--edit card--${this._color} ${this._state.isRepeated ? `card--repeat` : ``}">
         <form class="card__form" method="get">
           <div class="card__inner">
             <div class="card__control">
@@ -89,7 +90,7 @@ export default class TaskEdit extends Component {
                         type="text"
                         placeholder="23 September"
                         name="date"
-                        value=""
+                        value="${currentDate.format(`DD MMMM`)}"
                       />
                     </label>
                     <label class="card__input-deadline-wrap">
@@ -98,7 +99,7 @@ export default class TaskEdit extends Component {
                         type="text"
                         placeholder="5:23 PM"
                         name="time"
-                        value=""
+                        value="${currentDate.format(`HH:mm A`)}"
                       />
                     </label>
                   </fieldset>
@@ -107,7 +108,7 @@ export default class TaskEdit extends Component {
                     repeat:<span class="card__repeat-status">${this._state.isRepeated ? `yes` : `no`}</span>
                   </button>
 
-                  <fieldset class="card__repeat-days" ${!this._state.isRepeated && `disabled`}>
+                  <fieldset class="card__repeat-days" ${!this._state.isRepeated ? `disabled` : ``}>
                     <div class="card__repeat-days-inner">
                       ${this._getCardRepeatDaysTemplate()}
                     </div>
@@ -189,9 +190,12 @@ export default class TaskEdit extends Component {
   update(data) {
     this._title = data.title;
     this._tags = data.tags;
-    this._dueDate = data.dueDate;
+    this._dueDate = this._state.isDateLimited ? data.dueDate : null;
     this._repeatingDays = data.repeatingDays;
     this._color = data.color;
+
+    this._state.isRepeated = this._hasRepeatingDays();
+    this._state.isDateLimited = this._hasDateLimit();
   }
 
   /**
@@ -206,7 +210,7 @@ export default class TaskEdit extends Component {
     return {
       text: (value) => (target.title = value),
       date: (value) => {
-        const currentDate = moment(target.dueDate);
+        const currentDate = (target.dueDate === null) ? moment() : moment(target.dueDate);
         const newDate = moment(value, `DD MMMM`);
 
         target.dueDate = currentDate.set({
@@ -216,7 +220,7 @@ export default class TaskEdit extends Component {
         }).valueOf();
       },
       time: (value) => {
-        const currentDate = moment(target.dueDate);
+        const currentDate = (target.dueDate === null) ? moment() : moment(target.dueDate);
         const newDate = moment(value, `HH:mm A`);
 
         target.dueDate = currentDate.set({
@@ -267,13 +271,12 @@ export default class TaskEdit extends Component {
     this._element.querySelector(`.card__delete`).removeEventListener(`click`, this._onClickDelete);
   }
 
-  /**
-   * @description Проверить, включён ли хоть один день повтора
-   * @return {Boolean} True в случае успеха
-   * @memberof Task
-   */
-  _hasRepeatedDays() {
+  _hasRepeatingDays() {
     return Object.values(this._repeatingDays).some((day) => day);
+  }
+
+  _hasDateLimit() {
+    return (this._dueDate !== null);
   }
 
   /**
@@ -375,7 +378,7 @@ export default class TaskEdit extends Component {
   _processForm(formData) {
     const tempEntry = {
       title: ``,
-      dueDate: 0,
+      dueDate: null,
       color: ``,
       repeatingDays: {
         mo: false,
