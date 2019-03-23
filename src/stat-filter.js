@@ -27,7 +27,7 @@ export default class StatFilter extends Component {
    * @description Возвращаем шаблон компонента фильра
    * @readonly
    * @memberof StatFilter
-   * @return {Node} DOM-элемент <template> карточки задачи
+   * @return {Node} DOM-элемент <template> фильтра
    */
   get template() {
     const nodeStatFilterTemplate = document.createElement(`template`);

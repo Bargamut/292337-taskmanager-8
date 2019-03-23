@@ -10,9 +10,11 @@ import Chart from 'chart.js';
 export default class StatChart extends Component {
   /**
    * Конструктор класса StateChart
-   * @param {Number} width Ширина графика
-   * @param {Number} height Высота графика
-   * @param {Object} chartData Объект данных для графика
+   * @param {Object} chart Объект данных для графика
+   * @param {String} chart.type Тип данных для графика
+   * @param {Number} chart.width Ширина графика
+   * @param {Number} chart.height Высота графика
+   * @param {Object} chart.conf Конфиг графика
    * @memberof StateChart
    */
   constructor(chart) {
@@ -26,6 +28,12 @@ export default class StatChart extends Component {
     this._chart = null;
   }
 
+  /**
+   * @description Возвращаем шаблон компонента графика
+   * @readonly
+   * @memberof StatFilter
+   * @return {Node} DOM-элемент <template> графика
+   */
   get template() {
     const nodeChartTemplate = document.createElement(`template`);
 
@@ -35,6 +43,11 @@ export default class StatChart extends Component {
     return nodeChartTemplate;
   }
 
+  /**
+   * @description Обновление графика
+   * @param {Array} tasks Массив задач
+   * @memberof StatChart
+   */
   update(tasks) {
     const processedData = this._processTasks(tasks);
 
@@ -50,6 +63,14 @@ export default class StatChart extends Component {
     this._chart.update();
   }
 
+  /**
+   * @description Разметить данные для обновления компонента
+   * на основе типа данных компонента
+   * @static
+   * @param {Object} target Целевой объект данных для обновления
+   * @return {Object} Объект с функциями переноса данных
+   * @memberof StatChart
+   */
   static createMapper(target) {
     return {
       colors: (value) => {
@@ -79,10 +100,20 @@ export default class StatChart extends Component {
     };
   }
 
+  /**
+   * @description Создание графика
+   * @memberof StatChart
+   */
   createChart() {
     this._chart = new Chart(this._element, this._conf);
   }
 
+  /**
+   * @description Преобразовать данные задачи в данные для графика
+   * @param {Array} dataTasks
+   * @return {Map} Преобразованные данные для графика
+   * @memberof StatChart
+   */
   _processTasks(dataTasks) {
     const tempEntry = new Map();
     const statMapper = StatChart.createMapper(tempEntry);
