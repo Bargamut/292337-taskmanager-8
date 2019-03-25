@@ -1,3 +1,23 @@
+const cards = [];
+
+export const filters = new Map([
+  [
+    `all`, {caption: `All`, count: 0}
+  ], [
+    `overdue`, {caption: `Overdue`, count: 0}
+  ], [
+    `today`, {caption: `Today`, count: 0}
+  ], [
+    `favorites`, {caption: `Favorites`, count: 0}
+  ], [
+    `repeating`, {caption: `Repeating`, count: 0}
+  ], [
+    `tags`, {caption: `Tags`, count: 0}
+  ], [
+    `archive`, {caption: `Archive`, count: 0}
+  ],
+]);
+
 const WEEK_MILLISECONDS = 604800000;
 const arrayTitles = [
   `Изучить теорию`,
@@ -16,7 +36,9 @@ export const arrayColors = [`black`, `yellow`, `blue`, `green`, `pink`];
 const generateCardData = () => (
   {
     title: arrayTitles[getRandomInt(3)],
-    dueDate: Date.now() + getRandomInt(WEEK_MILLISECONDS, -WEEK_MILLISECONDS),
+    dueDate: Math.random() > 0.6
+      ? Date.now() + getRandomInt(WEEK_MILLISECONDS, -WEEK_MILLISECONDS)
+      : null,
     picture: `https://picsum.photos/100/100?r=${Math.random()}`,
     color: arrayColors[getRandomInt(arrayColors.length)],
     repeatingDays: {
@@ -40,4 +62,8 @@ const generateCardData = () => (
 
 const getRandomInt = (max, min = 0) => Math.floor(Math.random() * (max - min)) + min;
 
-export default generateCardData;
+while (cards.length < 7) {
+  cards.push(generateCardData());
+}
+
+export default cards;

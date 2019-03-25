@@ -24,10 +24,11 @@ export default class Task extends Component {
     this._repeatingDays = card.repeatingDays;
     this._color = card.color;
 
+    this._onClickEdit = this._onClickEdit.bind(this);
     this._onEdit = null;
 
-    this._state.isRepeated = false;
-    this._state.isDateLimited = false;
+    this._state.isRepeated = this._hasRepeatingDays();
+    this._state.isDateLimited = this._hasDateLimit();
   }
 
   /**
@@ -41,7 +42,7 @@ export default class Task extends Component {
     const currDate = moment(this._dueDate);
 
     nodeCardTemplate.innerHTML =
-      `<article class="card card--${this._color} ${this._hasRepeatedDays() && `card--repeat`}">
+      `<article class="card card--${this._color} ${this._state.isRepeated ? `card--repeat` : ``}">
         <form class="card__form" method="get">
           <div class="card__inner">
             <div class="card__control">
@@ -69,33 +70,7 @@ export default class Task extends Component {
             <div class="card__settings">
               <div class="card__details">
                 <div class="card__dates">
-                  ${currDate.format(`DD MMMM HH:mm`)}
-                  <fieldset class="card__date-deadline" ${!this._state.isDateLimited && `disabled`}>
-                    <label class="card__input-deadline-wrap">
-                      <input
-                        class="card__date"
-                        type="text"
-                        placeholder="23 September"
-                        name="date"
-                        value="${currDate.format(`DD MMMM`)}"
-                      />
-                    </label>
-                    <label class="card__input-deadline-wrap">
-                      <input
-                        class="card__time"
-                        type="text"
-                        placeholder="5:23 PM"
-                        name="time"
-                        value="${currDate.format(`HH:mm`)}"
-                      />
-                    </label>
-                  </fieldset>
-
-                  <fieldset class="card__repeat-days" ${!this._state.isRepeated && `disabled`}>
-                    <div class="card__repeat-days-inner">
-                      ${this._getCardRepeatDaysTemplate()}
-                    </div>
-                  </fieldset>
+                  ${this._state.isDateLimited ? currDate.format(`DD MMMM HH:mm`) : ``}
                 </div>
 
                 <div class="card__hashtag">
@@ -140,6 +115,9 @@ export default class Task extends Component {
     this._dueDate = data.dueDate;
     this._repeatingDays = data.repeatingDays;
     this._color = data.color;
+
+    this._state.isRepeated = this._hasRepeatingDays();
+    this._state.isDateLimited = this._hasDateLimit();
   }
 
   /**
@@ -147,7 +125,7 @@ export default class Task extends Component {
    * @memberof Task
    */
   createListeners() {
-    this._element.querySelector(`.card__btn--edit`).addEventListener(`click`, this._onClickEdit.bind(this));
+    this._element.querySelector(`.card__btn--edit`).addEventListener(`click`, this._onClickEdit);
   }
 
   /**
@@ -158,29 +136,12 @@ export default class Task extends Component {
     this._element.querySelector(`.card__btn--edit`).removeEventListener(`click`, this._onClickEdit);
   }
 
-  /**
-   * @description Геттер шаблона набора элементов дней повтора
-   * @readonly
-   * @memberof Task
-   * @return {String} Шаблон набора элементов дней повтора
-   */
-  _getCardRepeatDaysTemplate() {
-    let template = ``;
+  _hasRepeatingDays() {
+    return Object.values(this._repeatingDays).some((day) => day);
+  }
 
-    Object.keys(this._repeatingDays).forEach((day) => {
-      template +=
-        `<input
-          class="visually-hidden card__repeat-day-input"
-          type="checkbox"
-          id="repeat-${day}-${this._index}"
-          name="repeat"
-          value="${day}"
-          ${this._repeatingDays[day] ? `checked` : ``}
-        />\n
-        <label class="card__repeat-day" for="repeat-${day}-${this._index}">${day}</label>\n`;
-    });
-
-    return template;
+  _hasDateLimit() {
+    return (this._dueDate !== null);
   }
 
   /**
@@ -195,31 +156,13 @@ export default class Task extends Component {
     this._tags.forEach((tag) => {
       template +=
         `<span class="card__hashtag-inner">
-          <input
-            type="hidden"
-            name="hashtag"
-            value="${tag}"
-            class="card__hashtag-hidden-input"
-          />
           <button type="button" class="card__hashtag-name">
             #${tag}
-          </button>
-          <button type="button" class="card__hashtag-delete">
-            delete
           </button>
         </span>`;
     });
 
     return template;
-  }
-
-  /**
-   * @description Проверить, включён ли хоть один день повтора
-   * @return {Boolean} True в случае успеха
-   * @memberof Task
-   */
-  _hasRepeatedDays() {
-    return Object.values(this._repeatingDays).some((day) => day);
   }
 
   /**
