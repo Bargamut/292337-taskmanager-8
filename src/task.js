@@ -10,13 +10,12 @@ import moment from 'moment';
 export default class Task extends Component {
   /**
    * @description Конструктор экземпляра класса Task
-   * @param {Number} index Индексный номер карточки
    * @param {Object} card Объект данных карточки
    * @memberof Task
    */
-  constructor(index, card) {
+  constructor(card) {
     super();
-    this._index = index;
+    this._id = card.id;
     this._title = card.title;
     this._tags = card.tags;
     this._picture = card.picture;

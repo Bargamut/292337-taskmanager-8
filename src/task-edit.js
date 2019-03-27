@@ -12,14 +12,13 @@ import moment from 'moment';
 export default class TaskEdit extends Component {
   /**
    * Конструктор класса компонента TaskEdit
-   * @param {Number} index Индексный номер карточки
    * @param {Object} card Данные карточки
    * @param {Array} [colors=[]] Данные всех цветов, доступных для карточки
    * @memberof TaskEdit
    */
-  constructor(index, card, colors = []) {
+  constructor(card, colors = []) {
     super();
-    this._index = index;
+    this._id = card.id;
     this._title = card.title;
     this._tags = card.tags;
     this._picture = card.picture;
@@ -199,6 +198,38 @@ export default class TaskEdit extends Component {
   }
 
   /**
+   * @description Заблокировать элементы управления
+   * @memberof TaskEdit
+   */
+  block() {
+    this._element.querySelector(`.card__save`).disabled = true;
+    this._element.querySelector(`.card__text`).disabled = true;
+  }
+
+  /**
+   * @description Разблокировать элементы управления
+   * @memberof TaskEdit
+   */
+  unblock() {
+    this._element.querySelector(`.card__save`).disabled = false;
+    this._element.querySelector(`.card__text`).disabled = false;
+  }
+
+  /**
+   * @description Потрясти карточку задачи
+   * @memberof TaskEdit
+   */
+  shake() {
+    const ANIMATION_TIMEOUT = 600;
+
+    this._element.style.animation = `shake ${ANIMATION_TIMEOUT / 1000}s`;
+
+    setTimeout(() => {
+      this._element.style.animation = ``;
+    }, ANIMATION_TIMEOUT);
+  }
+
+  /**
    * @description Разметить данные для обновления компонента
    * на основе данных формы
    * @static
@@ -301,12 +332,12 @@ export default class TaskEdit extends Component {
         `<input
           class="visually-hidden card__repeat-day-input"
           type="checkbox"
-          id="repeat-${day}-${this._index}"
+          id="repeat-${day}-${this._id}"
           name="repeat"
           value="${day}"
           ${this._repeatingDays[day] ? `checked` : ``}
         />\n
-        <label class="card__repeat-day" for="repeat-${day}-${this._index}">${day}</label>\n`;
+        <label class="card__repeat-day" for="repeat-${day}-${this._id}">${day}</label>\n`;
     });
 
     return template;
@@ -325,13 +356,13 @@ export default class TaskEdit extends Component {
       template +=
         `<input
           type="radio"
-          id="color-${color}-${this._index}"
+          id="color-${color}-${this._id}"
           class="card__color-input card__color-input--${color} visually-hidden"
           name="color"
           value="${color}"
           ${(this._color === color) ? `checked` : ``}
         />
-        <label for="color-${color}-${this._index}" class="card__color card__color--${color}">
+        <label for="color-${color}-${this._id}" class="card__color card__color--${color}">
           ${color}
         </label>`;
     }
@@ -436,7 +467,7 @@ export default class TaskEdit extends Component {
     evt.preventDefault();
 
     if (this._onDelete instanceof Function) {
-      this._onDelete();
+      this._onDelete({id: this._id});
     }
   }
 
