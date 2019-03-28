@@ -223,9 +223,11 @@ export default class TaskEdit extends Component {
     const ANIMATION_TIMEOUT = 600;
 
     this._element.style.animation = `shake ${ANIMATION_TIMEOUT / 1000}s`;
+    this._element.querySelector(`.card__inner`).style.borderColor = `red`;
 
     setTimeout(() => {
       this._element.style.animation = ``;
+      this._element.querySelector(`.card__inner`).style.borderColor = `auto`;
     }, ANIMATION_TIMEOUT);
   }
 
