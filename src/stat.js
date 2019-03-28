@@ -1,9 +1,18 @@
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import moment from 'moment';
 
+import API from './api';
 import StatChart from './stat-chart';
 import StatFilter from './stat-filter';
-import tasks from './make-data';
+
+let currentTasks = [];
+const AUTHORIZATION = `Basic JKgkgKLkGKg97s&S97SGkhKkhgSkf=`;
+const END_POINT = `https://es8-demo-srv.appspot.com/task-manager`;
+
+const api = new API({
+  endPoint: END_POINT,
+  authorization: AUTHORIZATION
+});
 
 const componentStatFilter = new StatFilter();
 const componentChartColors = new StatChart({
@@ -127,8 +136,13 @@ document.addEventListener(`DOMContentLoaded`, () => {
     document.querySelector(`.statistic`).classList.remove(`visually-hidden`);
   });
 
-  renderCharts();
-  renderStatFilter();
+  api.get()
+    .then((tasks) => {
+      currentTasks = tasks;
+
+      renderCharts();
+      renderStatFilter();
+    });
 });
 
 /**
@@ -140,7 +154,12 @@ document.addEventListener(`DOMContentLoaded`, () => {
 const filterTasks = (dataTasks, selectedDates) => {
   const [since, to] = selectedDates;
 
-  return dataTasks.filter((task) => moment(task.dueDate).isBetween(moment(since).startOf(`day`), moment(to).endOf(`day`), null, `[]`));
+  return dataTasks.filter((task) =>
+    moment(task.dueDate).isBetween(
+        moment(since).startOf(`day`),
+        moment(to).endOf(`day`), null, `[]`
+    )
+  );
 };
 
 /**
@@ -148,7 +167,7 @@ const filterTasks = (dataTasks, selectedDates) => {
  * @param {Array} selectedDates Массив дат диапазона выборки
  */
 const updateComponents = (selectedDates) => {
-  const filteredTasks = filterTasks(tasks, selectedDates);
+  const filteredTasks = filterTasks(currentTasks, selectedDates);
 
   componentStatFilter.update(filteredTasks.length);
   componentChartColors.update(filteredTasks);

@@ -4,24 +4,42 @@ import Filter from './filter';
 import Task from './task';
 import TaskEdit from './task-edit';
 import './stat';
-import cards, {filters, arrayColors} from './make-data';
+import {filters, arrayColors} from './make-data';
+import API from './api';
 
-window.addEventListener(`DOMContentLoaded`, function () {
-  const nodeTaskBoard = document.querySelector(`.board__tasks`);
+let currentCards = [];
+const AUTHORIZATION = `Basic JKgkgKLkGKg97s&S97SGkhKkhgSkf=`;
+const END_POINT = `https://es8-demo-srv.appspot.com/task-manager`;
 
-  renderTaskBoard(nodeTaskBoard, cards);
-  renderFiltersBar(document.querySelector(`.main__filter`), filters, nodeTaskBoard);
+const api = new API({
+  endPoint: END_POINT,
+  authorization: AUTHORIZATION
+});
+
+window.addEventListener(`DOMContentLoaded`, () => {
+  processLoadingStatus(`loading`);
+
+  api.get()
+    .then((tasks) => {
+      processLoadingStatus();
+
+      currentCards = tasks;
+
+      renderTaskBoard(tasks);
+    })
+    .catch(() => {
+      processLoadingStatus(`error`);
+    });
+
+  renderFiltersBar(filters);
 });
 
 /**
- * @description Удалить задачу
+ * @description Фильтрация списка задач
  * @param {Array} tasks Массив задач
- * @param {Number} index индекс Удаляемой задачи
+ * @param {String} filterId ID фильтра
+ * @return {Array} Отфильтрованный массив списка
  */
-const removeTask = (tasks, index) => {
-  tasks[index] = null;
-};
-
 const filterTasks = (tasks, filterId) => {
   switch (filterId) {
     case `overdue`:
@@ -42,17 +60,38 @@ const filterTasks = (tasks, filterId) => {
 };
 
 /**
+ * @description Вывести сообщение статуса загрузки данных
+ * @param {String} status Текущий статус загрузки данных
+ */
+const processLoadingStatus = (status) => {
+  const nodeBoardInfo = document.querySelector(`.board__no-tasks`);
+
+  nodeBoardInfo.classList.remove(`visually-hidden`);
+
+  switch (status) {
+    case `loading`: nodeBoardInfo.innerHTML = `Loading tasks...`; break;
+    case `error`: nodeBoardInfo.innerHTML =
+        `Something went wrong while loading your tasks.
+        Check your connection or try again later`;
+      break;
+    default: nodeBoardInfo.classList.add(`visually-hidden`);
+  }
+};
+
+/**
  * @description Отрисовка доски задач
- * @param {Node} nodeTaskBoard DOM-элемент блока задач
  * @param {Array} [taskCards=[]] Массив объектов описания карточек
  */
-function renderTaskBoard(nodeTaskBoard, taskCards = []) {
+const renderTaskBoard = (taskCards = []) => {
+  const nodeTaskBoard = document.querySelector(`.board__tasks`);
   const docFragmentCards = document.createDocumentFragment();
 
+  nodeTaskBoard.innerHTML = ``;
+
   // Собираем карточки
-  taskCards.forEach(function (card, index) {
-    const componentTask = new Task(index, card);
-    const componentTaskEdit = new TaskEdit(index, card, arrayColors);
+  taskCards.forEach(function (card) {
+    const componentTask = new Task(card);
+    const componentTaskEdit = new TaskEdit(card, arrayColors);
 
     componentTask.onEdit = () => {
       componentTaskEdit.render();
@@ -61,19 +100,40 @@ function renderTaskBoard(nodeTaskBoard, taskCards = []) {
     };
 
     componentTaskEdit.onSubmit = (newData) => {
+      componentTaskEdit.block(`submit`);
+
       Object.assign(card, newData);
 
-      componentTask.update(card);
-      componentTask.render();
-      nodeTaskBoard.replaceChild(componentTask.element, componentTaskEdit.element);
-      componentTaskEdit.unrender();
+      api.update({
+        id: card.id,
+        data: card.toRAW()
+      })
+        .then((newCardData) => {
+          componentTask.update(newCardData);
+          componentTask.render();
+          nodeTaskBoard.replaceChild(componentTask.element, componentTaskEdit.element);
+          componentTaskEdit.unblock(`submit`);
+          componentTaskEdit.unrender();
+        })
+        .catch(() => {
+          componentTaskEdit.shake();
+          componentTaskEdit.unblock(`submit`);
+        });
     };
 
-    componentTaskEdit.onDelete = () => {
-      removeTask(cards, index);
+    componentTaskEdit.onDelete = ({id}) => {
+      componentTaskEdit.block(`delete`);
 
-      nodeTaskBoard.removeChild(componentTaskEdit.element);
-      componentTaskEdit.unrender();
+      api.delete({id})
+        .then(() => {
+          nodeTaskBoard.removeChild(componentTaskEdit.element);
+          componentTaskEdit.unrender();
+        })
+        .then(() => api.get())
+        .catch(() => {
+          componentTaskEdit.shake();
+          componentTaskEdit.unblock(`delete`);
+        });
     };
 
     docFragmentCards.appendChild(
@@ -81,17 +141,15 @@ function renderTaskBoard(nodeTaskBoard, taskCards = []) {
     );
   });
 
-  nodeTaskBoard.innerHTML = ``;
   nodeTaskBoard.appendChild(docFragmentCards);
-}
+};
 
 /**
  * @description Отрисовка фильтров с навешиванием обработчика кликов по ним
- * @param {Node} nodeFiltersBar DOM-элемент блока фильтров
  * @param {Map} [taskFilters=new Map()] Map описания свойств фильтров
- * @param {Node} nodeTaskBoard DOM-элемент блока задач
  */
-function renderFiltersBar(nodeFiltersBar, taskFilters = new Map(), nodeTaskBoard) {
+const renderFiltersBar = (taskFilters = new Map()) => {
+  const nodeFiltersBar = document.querySelector(`.main__filter`);
   const docFragmentFilters = document.createDocumentFragment();
 
   // Собираем фильтры
@@ -99,9 +157,9 @@ function renderFiltersBar(nodeFiltersBar, taskFilters = new Map(), nodeTaskBoard
     const componentFilter = new Filter(filterId, filter);
 
     componentFilter.onFilter = () => {
-      const filteredTasks = filterTasks(cards, filterId);
+      const filteredTasks = filterTasks(currentCards, filterId);
 
-      renderTaskBoard(nodeTaskBoard, filteredTasks);
+      renderTaskBoard(filteredTasks);
     };
 
     docFragmentFilters.appendChild(
@@ -111,4 +169,4 @@ function renderFiltersBar(nodeFiltersBar, taskFilters = new Map(), nodeTaskBoard
 
   nodeFiltersBar.innerHTML = ``;
   nodeFiltersBar.appendChild(docFragmentFilters);
-}
+};
