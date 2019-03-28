@@ -9,7 +9,7 @@ import API from './api';
 
 let currentCards = [];
 const AUTHORIZATION = `Basic JKgkgKLkGKg97s&S97SGkhKkhgSkf=`;
-const END_POINT = `https://es8-demo-srv.appspot.com/task-manager/`;
+const END_POINT = `https://es8-demo-srv.appspot.com/task-manager`;
 
 const api = new API({
   endPoint: END_POINT,
@@ -17,10 +17,18 @@ const api = new API({
 });
 
 window.addEventListener(`DOMContentLoaded`, () => {
+  processLoadingStatus(`loading`);
+
   api.get()
     .then((tasks) => {
+      processLoadingStatus();
+
       currentCards = tasks;
+
       renderTaskBoard(tasks);
+    })
+    .catch(() => {
+      processLoadingStatus(`error`);
     });
 
   renderFiltersBar(filters);
@@ -51,6 +59,21 @@ const filterTasks = (tasks, filterId) => {
   }
 };
 
+const processLoadingStatus = (status) => {
+  const nodeBoardInfo = document.querySelector(`.board__no-tasks`);
+
+  nodeBoardInfo.classList.remove(`visually-hidden`);
+
+  switch (status) {
+    case `loading`: nodeBoardInfo.innerHTML = `Loading tasks...`; break;
+    case `error`: nodeBoardInfo.innerHTML =
+        `Something went wrong while loading your tasks.
+        Check your connection or try again later`;
+      break;
+    default: nodeBoardInfo.classList.add(`visually-hidden`);
+  }
+};
+
 /**
  * @description Отрисовка доски задач
  * @param {Array} [taskCards=[]] Массив объектов описания карточек
@@ -58,6 +81,8 @@ const filterTasks = (tasks, filterId) => {
 const renderTaskBoard = (taskCards = []) => {
   const nodeTaskBoard = document.querySelector(`.board__tasks`);
   const docFragmentCards = document.createDocumentFragment();
+
+  nodeTaskBoard.innerHTML = ``;
 
   // Собираем карточки
   taskCards.forEach(function (card) {
@@ -112,7 +137,6 @@ const renderTaskBoard = (taskCards = []) => {
     );
   });
 
-  nodeTaskBoard.innerHTML = ``;
   nodeTaskBoard.appendChild(docFragmentCards);
 };
 
