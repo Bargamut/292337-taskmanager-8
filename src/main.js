@@ -150,7 +150,6 @@ const renderTaskBoard = (taskCards = []) => {
  */
 const renderFiltersBar = (taskFilters = new Map()) => {
   const nodeFiltersBar = document.querySelector(`.main__filter`);
-  const nodeTaskBoard = document.querySelector(`.board__tasks`);
   const docFragmentFilters = document.createDocumentFragment();
 
   // Собираем фильтры
@@ -160,7 +159,7 @@ const renderFiltersBar = (taskFilters = new Map()) => {
     componentFilter.onFilter = () => {
       const filteredTasks = filterTasks(currentCards, filterId);
 
-      renderTaskBoard(nodeTaskBoard, filteredTasks);
+      renderTaskBoard(filteredTasks);
     };
 
     docFragmentFilters.appendChild(
