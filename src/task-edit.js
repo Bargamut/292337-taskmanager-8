@@ -199,20 +199,44 @@ export default class TaskEdit extends Component {
 
   /**
    * @description Заблокировать элементы управления
+   * @param {String} type Тип блокировки
    * @memberof TaskEdit
    */
-  block() {
-    this._element.querySelector(`.card__save`).disabled = true;
-    this._element.querySelector(`.card__text`).disabled = true;
+  block(type) {
+    switch (type) {
+      case `submit`:
+        this._element.querySelector(`.card__save`).textContent = `Saving...`;
+        break;
+      case `delete`:
+        this._element.querySelector(`.card__delete`).textContent = `Deleting...`;
+        break;
+      default: break;
+    }
+
+    for (const node of this._element.querySelector(`.card__form`).elements) {
+      node.disabled = true;
+    }
   }
 
   /**
    * @description Разблокировать элементы управления
+   * @param {String} type Тип блокировки
    * @memberof TaskEdit
    */
-  unblock() {
-    this._element.querySelector(`.card__save`).disabled = false;
-    this._element.querySelector(`.card__text`).disabled = false;
+  unblock(type) {
+    switch (type) {
+      case `submit`:
+        this._element.querySelector(`.card__save`).textContent = `Save`;
+        break;
+      case `delete`:
+        this._element.querySelector(`.card__delete`).textContent = `Delete`;
+        break;
+      default: break;
+    }
+
+    for (const node of this._element.querySelector(`.card__form`).elements) {
+      node.disabled = false;
+    }
   }
 
   /**

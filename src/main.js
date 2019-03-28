@@ -96,7 +96,7 @@ const renderTaskBoard = (taskCards = []) => {
     };
 
     componentTaskEdit.onSubmit = (newData) => {
-      componentTaskEdit.block();
+      componentTaskEdit.block(`submit`);
 
       Object.assign(card, newData);
 
@@ -108,17 +108,17 @@ const renderTaskBoard = (taskCards = []) => {
           componentTask.update(newCardData);
           componentTask.render();
           nodeTaskBoard.replaceChild(componentTask.element, componentTaskEdit.element);
-          componentTaskEdit.unblock();
+          componentTaskEdit.unblock(`submit`);
           componentTaskEdit.unrender();
         })
         .catch(() => {
           componentTaskEdit.shake();
-          componentTaskEdit.unblock();
+          componentTaskEdit.unblock(`submit`);
         });
     };
 
     componentTaskEdit.onDelete = ({id}) => {
-      componentTaskEdit.block();
+      componentTaskEdit.block(`delete`);
 
       api.delete({id})
         .then(() => {
@@ -128,7 +128,7 @@ const renderTaskBoard = (taskCards = []) => {
         .then(() => api.get())
         .catch(() => {
           componentTaskEdit.shake();
-          componentTaskEdit.unblock();
+          componentTaskEdit.unblock(`delete`);
         });
     };
 
