@@ -59,6 +59,10 @@ const filterTasks = (tasks, filterId) => {
   }
 };
 
+/**
+ * @description Вывести сообщение статуса загрузки данных
+ * @param {String} status Текущий статус загрузки данных
+ */
 const processLoadingStatus = (status) => {
   const nodeBoardInfo = document.querySelector(`.board__no-tasks`);
 
