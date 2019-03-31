@@ -6,6 +6,7 @@ import TaskEdit from './task-edit';
 import './stat';
 import {filters, arrayColors} from './make-data';
 import API from './api';
+import Store from './store';
 import Provider from './provider';
 
 let currentCards = [];
@@ -17,7 +18,7 @@ const api = new API({
   endPoint: END_POINT,
   authorization: AUTHORIZATION
 });
-const storage = {};
+const storage = new Store();
 const provider = new Provider({api, storage});
 
 window.addEventListener(`DOMContentLoaded`, () => {
@@ -37,6 +38,14 @@ window.addEventListener(`DOMContentLoaded`, () => {
 
   renderFiltersBar(filters);
 });
+
+/**
+ * @description Генерировать уникальный ID для карточки
+ * @return {String} Строковый timestamp
+ */
+const generateId = () => {
+  return Date.now().toString();
+};
 
 /**
  * @description Фильтрация списка задач

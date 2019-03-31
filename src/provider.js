@@ -13,7 +13,8 @@ export default class Provider {
    * @memberof Provider
    */
   get() {
-    return this._api.get();
+    return this._api.get()
+      .then(this._putToStorage);
   }
 
   /**
@@ -23,7 +24,8 @@ export default class Provider {
    * @memberof Provider
    */
   create({task}) {
-    return this._api.create({task});
+    return this._api.create({task})
+      .then(this._putToStorage);
   }
 
   /**
@@ -45,5 +47,12 @@ export default class Provider {
    */
   delete({id}) {
     return this._api.delete({id});
+  }
+
+  _putToStorage(task) {
+    this._store.setItem({
+      key: task.id,
+      data: task
+    });
   }
 }
