@@ -1,4 +1,3 @@
-import './model-task';
 import ModelTask from './model-task';
 
 /**
@@ -27,7 +26,6 @@ export default class API {
 
   /**
    * @description Запрос данных
-   * @param {String} url URL запроса
    * @return {JSON} Данные в JSON-формате
    * @memberof API
    */
