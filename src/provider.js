@@ -6,6 +6,8 @@ export default class Provider {
     this._store = store;
     this._generateId = generateId;
     this._needSync = false;
+
+    this._putToStorage = this._putToStorage.bind(this);
   }
 
   /**
@@ -24,9 +26,11 @@ export default class Provider {
         });
     }
 
-    const rawTasks = this._store.getAll();
+    const rawTasksMap = this._store.getAll();
+    const rawTasks = this._objectToArray(rawTasksMap);
+    const tasks = ModelTask.parseTasks(rawTasks);
 
-    return Promise.resolve(ModelTask.parseTasks(rawTasks));
+    return Promise.resolve(tasks);
   }
 
   /**
@@ -42,11 +46,12 @@ export default class Provider {
     }
 
     task.id = this._generateId();
+    task = ModelTask.parseTask(task);
 
     this._needSync = true;
     this._putToStorage(task);
 
-    return Promise.resolve(ModelTask.parseTask(task));
+    return Promise.resolve(task);
   }
 
   /**
@@ -62,12 +67,12 @@ export default class Provider {
         .then(this._putToStorage);
     }
 
-    const task = data;
+    const task = ModelTask.parseTask(data);
 
     this._needSync = true;
     this._putToStorage(task);
 
-    return Promise.resolve(ModelTask.parseTask(task));
+    return Promise.resolve(task);
   }
 
   /**
@@ -90,9 +95,14 @@ export default class Provider {
     return Promise.resolve(id);
   }
 
+  /**
+   * @description Сихронизировать данные
+   * @return {JSON}
+   * @memberof Provider
+   */
   syncTasks() {
     return this._api.sync({
-      tasks: this._store.getAll()
+      tasks: this._objectToArray(this._store.getAll())
     });
   }
 
@@ -118,5 +128,15 @@ export default class Provider {
    */
   _isOnline() {
     return window.navigator.onLine;
+  }
+
+  /**
+   * @description Преобразовать объект данных для задач в массив
+   * @param {Object} object Объект данных для задач
+   * @return {Array} Массив данных для задач
+   * @memberof Provider
+   */
+  _objectToArray(object) {
+    return Object.keys(object).map((id) => object[id]);
   }
 }

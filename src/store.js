@@ -7,7 +7,7 @@ export default class Store {
   /**
    * @description Запрос конкретной записи
    * @param {*} {id} ID задачи
-   * @return 
+   * @return {Object}
    * @memberof Store
    */
   getItem({id}) {
@@ -21,7 +21,7 @@ export default class Store {
 
     this._storage.setItem(
         this._storeKey,
-        JSON.stringify(data)
+        JSON.stringify(items)
     );
   }
 

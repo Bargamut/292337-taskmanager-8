@@ -37,7 +37,7 @@ export default class API {
 
   /**
    * @description Послать данные для записи
-   * @param {*} {task} Данные задачи
+   * @param {Object} {task} Данные задачи
    * @return {JSON} Ответ сервера
    * @memberof API
    */
@@ -55,8 +55,8 @@ export default class API {
 
   /**
    * @description Послать данные для обновления
-   * @param {*} id Данные задачи
-   * @param {*} data Данные задачи
+   * @param {String} id ID задачи
+   * @param {Object} data Данные задачи
    * @return {JSON} Ответ сервера
    * @memberof API
    */
@@ -87,7 +87,7 @@ export default class API {
 
   /**
    * @description Синхронизировать данные
-   * @param {*} {tasks}
+   * @param {Array} {tasks} Массив задач для синхронизации
    * @return {JSON}
    * @memberof API
    */

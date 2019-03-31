@@ -18,8 +18,15 @@ const api = new API({
   endPoint: END_POINT,
   authorization: AUTHORIZATION
 });
-const storage = new Store();
-const provider = new Provider({api, storage, generateId});
+const store = new Store({
+  key: TASKS_STORE_KEY,
+  storage: localStorage
+});
+const provider = new Provider({
+  api,
+  store,
+  generateId: () => String(Date.now() + Math.random())
+});
 
 window.addEventListener(`online`, () => {
   document.title = document.title.replace(/^\[OFFLINE\]\s(.*)/, `$1`);
@@ -46,14 +53,6 @@ window.addEventListener(`DOMContentLoaded`, () => {
 
   renderFiltersBar(filters);
 });
-
-/**
- * @description Генерировать уникальный ID для карточки
- * @return {String} Строковый timestamp
- */
-const generateId = () => {
-  return String(Date.now() + Math.random());
-};
 
 /**
  * @description Фильтрация списка задач
