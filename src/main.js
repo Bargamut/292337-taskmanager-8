@@ -19,8 +19,16 @@ const api = new API({
   authorization: AUTHORIZATION
 });
 const storage = new Store();
-const provider = new Provider({api, storage});
+const provider = new Provider({api, storage, generateId});
 
+window.addEventListener(`online`, () => {
+  document.title = document.title.replace(/^\[OFFLINE\]\s(.*)/, `$1`);
+
+  provider.syncTasks();
+});
+window.addEventListener(`offline`, () => {
+  document.title = `[OFFLINE] ${document.title}`;
+});
 window.addEventListener(`DOMContentLoaded`, () => {
   processLoadingStatus(`loading`);
 
@@ -44,7 +52,7 @@ window.addEventListener(`DOMContentLoaded`, () => {
  * @return {String} Строковый timestamp
  */
 const generateId = () => {
-  return Date.now().toString();
+  return String(Date.now() + Math.random());
 };
 
 /**

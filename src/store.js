@@ -4,6 +4,12 @@ export default class Store {
     this._storage = storage;
   }
 
+  /**
+   * @description Запрос конкретной записи
+   * @param {*} {id} ID задачи
+   * @return 
+   * @memberof Store
+   */
   getItem({id}) {
     return this.getAll()[id];
   }

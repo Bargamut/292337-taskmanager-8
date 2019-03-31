@@ -86,6 +86,24 @@ export default class API {
   }
 
   /**
+   * @description Синхронизировать данные
+   * @param {*} {tasks}
+   * @return {JSON}
+   * @memberof API
+   */
+  sync({tasks}) {
+    return this._load({
+      url: `tasks/sync`,
+      method: this._METHODS.POST,
+      body: JSON.stringify(tasks),
+      headers: new Headers({
+        'Content-Type': `application/json`
+      })
+    })
+      .then(this._toJSON);
+  }
+
+  /**
    * @description Сделать запрос
    * @param {Object} params Параметры запроса
    * @param {String} params.url

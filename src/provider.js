@@ -1,7 +1,11 @@
+import ModelTask from "./model-task";
+
 export default class Provider {
-  constructor({api, store}) {
+  constructor({api, store, generateId}) {
     this._api = api;
     this._store = store;
+    this._generateId = generateId;
+    this._needSync = false;
   }
 
   /**
@@ -11,12 +15,18 @@ export default class Provider {
    * @memberof Provider
    */
   get() {
-    return this._api.get()
-      .then((tasks) => {
-        tasks.forEach(this._putToStorage);
+    if (this._isOnline()) {
+      return this._api.get()
+        .then((tasks) => {
+          tasks.forEach(this._putToStorage);
 
-        return tasks;
-      });
+          return tasks;
+        });
+    }
+
+    const rawTasks = this._store.getAll();
+
+    return Promise.resolve(ModelTask.parseTasks(rawTasks));
   }
 
   /**
@@ -26,8 +36,17 @@ export default class Provider {
    * @memberof Provider
    */
   create({task}) {
-    return this._api.create({task})
-      .then(this._putToStorage);
+    if (this._isOnline()) {
+      return this._api.create({task})
+        .then(this._putToStorage);
+    }
+
+    task.id = this._generateId();
+
+    this._needSync = true;
+    this._putToStorage(task);
+
+    return Promise.resolve(ModelTask.parseTask(task));
   }
 
   /**
@@ -38,8 +57,17 @@ export default class Provider {
    * @memberof Provider
    */
   update({id, data}) {
-    return this._api.update({id, data})
-      .then(this._putToStorage);
+    if (this._isOnline()) {
+      return this._api.update({id, data})
+        .then(this._putToStorage);
+    }
+
+    const task = data;
+
+    this._needSync = true;
+    this._putToStorage(task);
+
+    return Promise.resolve(ModelTask.parseTask(task));
   }
 
   /**
@@ -49,12 +77,31 @@ export default class Provider {
    * @memberof Provider
    */
   delete({id}) {
-    return this._api.delete({id})
-      .then(() => {
-        this._store.removeItem({id});
-      });
+    if (this._isOnline()) {
+      return this._api.delete({id})
+        .then(() => {
+          this._store.removeItem({id});
+        });
+    }
+
+    this._needSync = true;
+    this._store.removeItem({id});
+
+    return Promise.resolve(id);
   }
 
+  syncTasks() {
+    return this._api.sync({
+      tasks: this._store.getAll()
+    });
+  }
+
+  /**
+   * @description Добавить данные в хранилище
+   * @param {ModelTask} task Данные описания задачи
+   * @return {ModelTask} Данные описания задачи
+   * @memberof Provider
+   */
   _putToStorage(task) {
     this._store.setItem({
       id: task.id,
@@ -62,5 +109,14 @@ export default class Provider {
     });
 
     return task;
+  }
+
+  /**
+   * @description Проверить статус подключения
+   * @return {Boolean}
+   * @memberof Provider
+   */
+  _isOnline() {
+    return window.navigator.onLine;
   }
 }
