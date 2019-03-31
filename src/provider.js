@@ -1,5 +1,3 @@
-import ModelTask from './model-task';
-
 export default class Provider {
   constructor({api, store}) {
     this._api = api;
@@ -14,7 +12,11 @@ export default class Provider {
    */
   get() {
     return this._api.get()
-      .then(this._putToStorage);
+      .then((tasks) => {
+        tasks.forEach(this._putToStorage);
+
+        return tasks;
+      });
   }
 
   /**
@@ -36,7 +38,8 @@ export default class Provider {
    * @memberof Provider
    */
   update({id, data}) {
-    return this._api.update({id, data});
+    return this._api.update({id, data})
+      .then(this._putToStorage);
   }
 
   /**
@@ -46,13 +49,18 @@ export default class Provider {
    * @memberof Provider
    */
   delete({id}) {
-    return this._api.delete({id});
+    return this._api.delete({id})
+      .then(() => {
+        this._store.removeItem({id});
+      });
   }
 
   _putToStorage(task) {
     this._store.setItem({
-      key: task.id,
-      data: task
+      id: task.id,
+      data: task.toRAW()
     });
+
+    return task;
   }
 }

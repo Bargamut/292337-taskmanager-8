@@ -1,10 +1,46 @@
 export default class Store {
-  constructor() {}
+  constructor({key, storage}) {
+    this._storeKey = key;
+    this._storage = storage;
+  }
 
-  setItem({key, data}) {
-    localStorage.setItem(
-        key,
-        JSON.stringify(data.toRAW())
+  getItem({id}) {
+    return this.getAll()[id];
+  }
+
+  setItem({id, data}) {
+    const items = this.getAll();
+
+    items[id] = data;
+
+    this._storage.setItem(
+        this._storeKey,
+        JSON.stringify(data)
     );
+  }
+
+  removeItem({id}) {
+    const items = this.getAll();
+
+    delete items[id];
+
+    this._storage.setItem(this._storeKey, JSON.stringify(items));
+  }
+
+  getAll() {
+    const emptyItems = {};
+    const items = this._storage.getItem(this._storeKey);
+
+    if (!items) {
+      return emptyItems;
+    }
+
+    try {
+      return JSON.parse(items);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(`Error parse items. Error" ${err}. Items: ${items}`);
+      return emptyItems;
+    }
   }
 }
