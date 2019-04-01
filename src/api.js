@@ -29,7 +29,7 @@ export default class API {
    * @return {JSON} Данные в JSON-формате
    * @memberof API
    */
-  get() {
+  getTasks() {
     return this._load({url: `tasks`})
       .then(this._toJSON)
       .then(ModelTask.parseTasks);
@@ -41,7 +41,7 @@ export default class API {
    * @return {JSON} Ответ сервера
    * @memberof API
    */
-  create({task}) {
+  createTask({task}) {
     return this._load({
       url: `tasks`,
       method: this._METHODS.POST,
@@ -60,7 +60,7 @@ export default class API {
    * @return {JSON} Ответ сервера
    * @memberof API
    */
-  update({id, data}) {
+  updateTask({id, data}) {
     return this._load({
       url: `tasks/${id}`,
       method: this._METHODS.PUT,
@@ -78,7 +78,7 @@ export default class API {
    * @return {Promise}
    * @memberof API
    */
-  delete({id}) {
+  deleteTask({id}) {
     return this._load({
       url: `tasks/${id}`,
       method: this._METHODS.DELETE
@@ -91,7 +91,7 @@ export default class API {
    * @return {JSON}
    * @memberof API
    */
-  sync({tasks}) {
+  syncTasks({tasks}) {
     return this._load({
       url: `tasks/sync`,
       method: this._METHODS.POST,

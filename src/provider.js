@@ -16,9 +16,9 @@ export default class Provider {
    * @return {JSON} Данные в JSON-формате
    * @memberof Provider
    */
-  get() {
+  getTasks() {
     if (this._isOnline()) {
-      return this._api.get()
+      return this._api.getTasks()
         .then((tasks) => {
           tasks.forEach(this._putToStorage);
 
@@ -39,9 +39,9 @@ export default class Provider {
    * @return {JSON} Ответ сервера
    * @memberof Provider
    */
-  create({task}) {
+  createTask({task}) {
     if (this._isOnline()) {
-      return this._api.create({task})
+      return this._api.createTask({task})
         .then(this._putToStorage);
     }
 
@@ -61,9 +61,9 @@ export default class Provider {
    * @return {JSON} Ответ сервера
    * @memberof Provider
    */
-  update({id, data}) {
+  updateTask({id, data}) {
     if (this._isOnline()) {
-      return this._api.update({id, data})
+      return this._api.updateTask({id, data})
         .then(this._putToStorage);
     }
 
@@ -81,9 +81,9 @@ export default class Provider {
    * @return {Promise}
    * @memberof Provider
    */
-  delete({id}) {
+  deleteTask({id}) {
     if (this._isOnline()) {
-      return this._api.delete({id})
+      return this._api.deleteTask({id})
         .then(() => {
           this._store.removeItem({id});
         });
@@ -101,8 +101,11 @@ export default class Provider {
    * @memberof Provider
    */
   syncTasks() {
-    return this._api.sync({
+    return this._api.syncTasks({
       tasks: this._objectToArray(this._store.getAll())
+    })
+    .then(() => {
+      this._needSync = false;
     });
   }
 
