@@ -144,5 +144,14 @@
     </main>
 
     <script src="bundle.js"></script>
+    <script>
+      navigator.serviceWorker.register(`./sw.js`)
+        .then((reg) => {
+          console.log(`Registration succeeded. Scope is ${reg.scope}`);
+        })
+        .catch((error) => {
+          console.error(error);
+        })
+    </script>
   </body>
 </html>

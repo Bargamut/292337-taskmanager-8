@@ -136,7 +136,7 @@ document.addEventListener(`DOMContentLoaded`, () => {
     document.querySelector(`.statistic`).classList.remove(`visually-hidden`);
   });
 
-  api.get()
+  api.getTasks()
     .then((tasks) => {
       currentTasks = tasks;
 

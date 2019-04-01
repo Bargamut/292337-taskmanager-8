@@ -39,7 +39,7 @@ window.addEventListener(`offline`, () => {
 window.addEventListener(`DOMContentLoaded`, () => {
   processLoadingStatus(`loading`);
 
-  provider.get()
+  provider.getTasks()
     .then((tasks) => {
       processLoadingStatus();
 
@@ -124,7 +124,7 @@ const renderTaskBoard = (taskCards = []) => {
 
       Object.assign(card, newData);
 
-      provider.update({
+      provider.updateTask({
         id: card.id,
         data: card.toRAW()
       })
@@ -144,12 +144,12 @@ const renderTaskBoard = (taskCards = []) => {
     componentTaskEdit.onDelete = ({id}) => {
       componentTaskEdit.block(`delete`);
 
-      provider.delete({id})
+      provider.deleteTask({id})
         .then(() => {
           nodeTaskBoard.removeChild(componentTaskEdit.element);
           componentTaskEdit.unrender();
         })
-        .then(() => provider.get())
+        .then(() => provider.getTasks())
         .catch(() => {
           componentTaskEdit.shake();
           componentTaskEdit.unblock(`delete`);
