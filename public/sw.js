@@ -9,11 +9,11 @@ self.addEventListener(`install`, (evt) => {
   const openCache = caches.open(CACHE_NAME)
     .then((cache) => {
       return cache.addAll([
-        `/`,
-        `/index.html`,
-        `/css/normalize.css`,
-        `/css/style.css`,
-        `/bundle.js`
+        `./`,
+        `./index.html`,
+        `./css/normalize.css`,
+        `./css/style.css`,
+        `./bundle.js`
       ]);
     });
 
