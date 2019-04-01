@@ -1,4 +1,3 @@
-import './model-task';
 import ModelTask from './model-task';
 
 /**
@@ -27,7 +26,6 @@ export default class API {
 
   /**
    * @description Запрос данных
-   * @param {String} url URL запроса
    * @return {JSON} Данные в JSON-формате
    * @memberof API
    */
@@ -39,7 +37,7 @@ export default class API {
 
   /**
    * @description Послать данные для записи
-   * @param {*} {task} Данные задачи
+   * @param {Object} {task} Данные задачи
    * @return {JSON} Ответ сервера
    * @memberof API
    */
@@ -57,8 +55,8 @@ export default class API {
 
   /**
    * @description Послать данные для обновления
-   * @param {*} id Данные задачи
-   * @param {*} data Данные задачи
+   * @param {String} id ID задачи
+   * @param {Object} data Данные задачи
    * @return {JSON} Ответ сервера
    * @memberof API
    */
@@ -85,6 +83,24 @@ export default class API {
       url: `tasks/${id}`,
       method: this._METHODS.DELETE
     });
+  }
+
+  /**
+   * @description Синхронизировать данные
+   * @param {Array} {tasks} Массив задач для синхронизации
+   * @return {JSON}
+   * @memberof API
+   */
+  sync({tasks}) {
+    return this._load({
+      url: `tasks/sync`,
+      method: this._METHODS.POST,
+      body: JSON.stringify(tasks),
+      headers: new Headers({
+        'Content-Type': `application/json`
+      })
+    })
+      .then(this._toJSON);
   }
 
   /**

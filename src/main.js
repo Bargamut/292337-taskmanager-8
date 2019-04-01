@@ -6,20 +6,40 @@ import TaskEdit from './task-edit';
 import './stat';
 import {filters, arrayColors} from './make-data';
 import API from './api';
+import Store from './store';
+import Provider from './provider';
 
 let currentCards = [];
 const AUTHORIZATION = `Basic JKgkgKLkGKg97s&S97SGkhKkhgSkf=`;
 const END_POINT = `https://es8-demo-srv.appspot.com/task-manager`;
+const TASKS_STORE_KEY = `tasks-store-key`;
 
 const api = new API({
   endPoint: END_POINT,
   authorization: AUTHORIZATION
 });
+const store = new Store({
+  key: TASKS_STORE_KEY,
+  storage: localStorage
+});
+const provider = new Provider({
+  api,
+  store,
+  generateId: () => String(Date.now() + Math.random())
+});
 
+window.addEventListener(`online`, () => {
+  document.title = document.title.replace(/^\[OFFLINE\]\s(.*)/, `$1`);
+
+  provider.syncTasks();
+});
+window.addEventListener(`offline`, () => {
+  document.title = `[OFFLINE] ${document.title}`;
+});
 window.addEventListener(`DOMContentLoaded`, () => {
   processLoadingStatus(`loading`);
 
-  api.get()
+  provider.get()
     .then((tasks) => {
       processLoadingStatus();
 
@@ -104,7 +124,7 @@ const renderTaskBoard = (taskCards = []) => {
 
       Object.assign(card, newData);
 
-      api.update({
+      provider.update({
         id: card.id,
         data: card.toRAW()
       })
@@ -124,12 +144,12 @@ const renderTaskBoard = (taskCards = []) => {
     componentTaskEdit.onDelete = ({id}) => {
       componentTaskEdit.block(`delete`);
 
-      api.delete({id})
+      provider.delete({id})
         .then(() => {
           nodeTaskBoard.removeChild(componentTaskEdit.element);
           componentTaskEdit.unrender();
         })
-        .then(() => api.get())
+        .then(() => provider.get())
         .catch(() => {
           componentTaskEdit.shake();
           componentTaskEdit.unblock(`delete`);
